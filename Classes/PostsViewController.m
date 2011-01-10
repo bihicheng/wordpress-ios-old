@@ -2,11 +2,12 @@
 #import "BlogDataManager.h"
 #import "PostViewController.h"
 #import "EditPostViewController.h"
+#import "PostReaderViewController.h"
 #import "PostTableViewCell.h"
 #import "UIViewController+WPAnimation.h"
 #import "WordPressAppDelegate.h"
 #import "WPNavigationLeftButtonView.h"
-#import "Reachability.h"
+#import "WPReachability.h"
 #import "WPProgressHUD.h"
 #import "IncrementPost.h"
 
@@ -17,7 +18,6 @@
 
 @interface PostsViewController (Private)
 
-- (void)scrollToFirstCell;
 - (void)refreshHandler;
 - (void)syncPosts;
 //- (void) addSpinnerToCell:(NSIndexPath *)indexPath;
@@ -25,19 +25,22 @@
 - (BOOL)handleAutoSavedContext:(NSInteger)tag;
 - (void)addRefreshButton;
 - (void)deletePostAtIndexPath;
-
+- (void)trySelectSomething;
 @end
 
 @implementation PostsViewController
 
-@synthesize newButtonItem, postDetailViewController, postDetailEditController;
+@synthesize newButtonItem, postDetailViewController, postReaderViewController, postDetailEditController;
 @synthesize anyMorePosts, selectedIndexPath, drafts, draftManager, mediaManager;
+@synthesize resultsController;
+@synthesize blog;
 
 #pragma mark -
 #pragma mark View lifecycle
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    [FlurryAPI logEvent:@"Posts"];
 
 	draftManager = [[DraftManager alloc] init];
     self.tableView.backgroundColor = TABLE_VIEW_BACKGROUND_COLOR;
@@ -50,6 +53,23 @@
     newButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCompose
                      target:self
                      action:@selector(showAddPostView)];
+
+    NSError *error = nil;
+    if (![self.resultsController performFetch:&error]) {
+        NSLog(@"Error fetching request (Posts) %@", [error localizedDescription]);
+    } else {
+        if (DeviceIsPad() && self.selectedIndexPath && self.postReaderViewController) {
+            @try {
+                self.postReaderViewController.post = [resultsController objectAtIndexPath:self.selectedIndexPath];
+                [self.postReaderViewController refreshUI];
+            }
+            @catch (NSException * e) {
+                // In some cases, selectedIndexPath could be pointint to a missing row
+                // This is the case after a failed core data upgrade
+                self.selectedIndexPath = nil;
+            }
+        }
+    }
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -57,14 +77,12 @@
 	
 	// Force a crash for CrashReporter
 	//NSLog(@"crash time! %@", 1);
-	
-    [self loadPosts];
-	
+		
 	WordPressAppDelegate *appDelegate = (WordPressAppDelegate *)[[UIApplication sharedApplication] delegate];
 	appDelegate.postID = nil;
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 
-	if ([[Reachability sharedReachability] internetConnectionStatus])
+	if ([[WPReachability sharedReachability] internetConnectionStatus])
 	{
 		if ([defaults boolForKey:@"refreshPostsRequired"]) {
 			[self refreshHandler];
@@ -79,13 +97,14 @@
 			[self.tableView deselectRowAtIndexPath:[self.tableView indexPathForSelectedRow] animated:animated];
 		}
 	} else if (DeviceIsPad() == YES) {
+        if (!self.selectedIndexPath) {
+            [self trySelectSomething];
+        }
 		// sometimes, iPad table views should
 		if (self.selectedIndexPath) {
 			[self.tableView selectRowAtIndexPath:self.selectedIndexPath animated:NO scrollPosition:UITableViewScrollPositionNone];
 		}
 	}
-
-	[self handleAutoSavedContext:0];	
 }
 
 - (void)viewDidUnload {
@@ -113,148 +132,82 @@
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return NUM_SECTIONS;
+    return [[resultsController sections] count];
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-    if (section == LOCAL_DRAFTS_SECTION) {
-		
-		if(drafts.count > 0)
-			return @"Local Drafts";
-		else
-			return nil;
-    }
-	else
-        return @"Posts";
+    id <NSFetchedResultsSectionInfo> sectionInfo = [[resultsController sections] objectAtIndex:section];
+    NSString *sectionName = [sectionInfo name];
+    
+    // Ugly, but it works. We'll need something better when going for i18n
+    return [sectionName stringByAppendingString:@"s"];
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-
-    if (section == LOCAL_DRAFTS_SECTION) {
-		return drafts.count;
-    }
-	else if ([defaults boolForKey:@"anyMorePosts"]) {
-        return [[BlogDataManager sharedDataManager] countOfPostTitles] + 1;
-	}
-	else {
-		return [[BlogDataManager sharedDataManager] countOfPostTitles];
-    }
-
+    id <NSFetchedResultsSectionInfo> sectionInfo = nil;
+    sectionInfo = [[resultsController sections] objectAtIndex:section];
+    return [sectionInfo numberOfObjects];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     static NSString *CellIdentifier = @"PostCell";
     PostTableViewCell *cell = (PostTableViewCell *)[tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-
-    BlogDataManager *dm = [BlogDataManager sharedDataManager];
-    //id post = nil;
+    Post *post = [resultsController objectAtIndexPath:indexPath];
 
     if (cell == nil) {
         cell = [[[PostTableViewCell alloc] initWithFrame:CGRectZero reuseIdentifier:CellIdentifier] autorelease];
     }
 
-    if (indexPath.section == LOCAL_DRAFTS_SECTION) {
-		cell.post = [[drafts objectAtIndex:indexPath.row] legacyPost];
-    } 
-	else {
-		int count = [[BlogDataManager sharedDataManager] countOfPostTitles];
-		
-		if (indexPath.row == count) {
-			int totalPosts = [[BlogDataManager sharedDataManager] countOfPostTitles];
-			if (totalPosts == 0) {
-				cell.contentView.backgroundColor = TABLE_VIEW_BACKGROUND_COLOR;
-				cell.accessoryType = UITableViewCellAccessoryNone;
-				return cell;
-			}
-			else {
-				NSString *totalString = [NSString stringWithFormat:@"%d posts loaded", totalPosts];
-				[cell changeCellLabelsForUpdate:totalString:@"Load more posts":NO];
-				//prevent masking of the changes to font color etc that we want
-				cell.selectionStyle = UITableViewCellSelectionStyleNone;
-				return cell;
-			}
-		}
-		else {
-			[cell setPost:[dm postTitleAtIndex:indexPath.row]];
-		}
-    }
+    cell.post = post;
 
     return cell;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    BlogDataManager *dm = [BlogDataManager sharedDataManager];
     WordPressAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
 	
-	postDetailViewController = nil;
-	if (DeviceIsPad() == YES) {
-		postDetailViewController = [[PostViewController alloc] initWithNibName:@"PostViewController-iPad" bundle:nil];
-	} else {
-		postDetailViewController = [[PostViewController alloc] initWithNibName:@"PostViewController" bundle:nil];
-	}
+    if (indexPath.row == [self tableView:tableView numberOfRowsInSection:indexPath.section]) {
+        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 
-    if (indexPath.section == LOCAL_DRAFTS_SECTION) {
-		Post *post = [[self drafts] objectAtIndex:indexPath.row];
-		[appDelegate setPostID:[post uniqueID]];
-		self.selectedIndexPath = indexPath;
-		[dm resetCurrentPost];
-    } 
-	else {
-		//handle the case when it's the last row and is the "get more posts" special cell
-		if (indexPath.row == [dm countOfPostTitles]) {
-			NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+        //run the spinner in the background and change the text
+        [self performSelectorInBackground:@selector(addSpinnerToCell:) withObject:indexPath];
 
-			//run the spinner in the background and change the text
-			[self performSelectorInBackground:@selector(addSpinnerToCell:) withObject:indexPath];
+        //init the Increment Post helper class class
+        IncrementPost *incrementPost = [[IncrementPost alloc] init];
 
-			//init the Increment Post helper class class
-			IncrementPost *incrementPost = [[IncrementPost alloc] init];
+        //run the "get more" function in the IncrementPost class and get metadata, then parse metadata for next 10 and get 10 more
+        anyMorePosts = [incrementPost loadOlderPosts];
+        [defaults setBool:anyMorePosts forKey:@"anyMorePosts"];
 
-			//run the "get more" function in the IncrementPost class and get metadata, then parse metadata for next 10 and get 10 more
-			anyMorePosts = [incrementPost loadOlderPosts];
-			[defaults setBool:anyMorePosts forKey:@"anyMorePosts"];
+        //release the helper class
+        [incrementPost release];
 
-			//release the helper class
-			[incrementPost release];
+        //turn of spinner and change text
+        [self performSelectorInBackground:@selector(removeSpinnerFromCell:) withObject:indexPath];
 
-			//turn of spinner and change text
-			[self performSelectorInBackground:@selector(removeSpinnerFromCell:) withObject:indexPath];
+        //get a reference to the cell
+        UITableViewCell *cell = [[self tableView] cellForRowAtIndexPath:indexPath];
 
-			//refresh the post list
-			[self loadPosts];
+        // solve the problem where the "load more" cell is reused and retains it's old formatting by forcing a redraw
+        [cell setNeedsDisplay];
 
-			//get a reference to the cell
-			UITableViewCell *cell = [[self tableView] cellForRowAtIndexPath:indexPath];
+        //return
+        return;
 
-			// solve the problem where the "load more" cell is reused and retains it's old formatting by forcing a redraw
-			[cell setNeedsDisplay];
-
-			//return
-			return;
-
-		}
-
-        id currentPost = [dm postTitleAtIndex:indexPath.row];
-
-        // Bail out if we're in the middle of saving the post.
-        if ([[currentPost valueForKey:kAsyncPostFlag] intValue] == 1) {
-            return;
-        }
-
-        [dm makePostAtIndexCurrent:indexPath.row];
-		[postDetailViewController refreshUIForCurrentPost];
-        postDetailViewController.postsListController = self;
-		self.selectedIndexPath = indexPath;
-        self.postDetailViewController.hasChanges = NO;
     }
 
-    self.postDetailViewController.editMode = kEditPost;
-	[self.postDetailViewController refreshUIForCurrentPost];
-	[appDelegate showContentDetailViewController:self.postDetailViewController];
-	
-	if (!DeviceIsPad())
-		[self.tableView deselectRowAtIndexPath:indexPath animated:YES];
+    if (DeviceIsPad()) {
+        self.selectedIndexPath = indexPath;
+    } else {
+        self.postDetailViewController = [[PostViewController alloc] initWithNibName:@"PostViewController" bundle:nil];
+        Post *post = [resultsController objectAtIndexPath:indexPath];
+        self.postDetailViewController.post = (Post *)[post createRevision];
+        self.postDetailViewController.hasChanges = NO;
+        self.postDetailViewController.editMode = kEditPost;
+        [self.postDetailViewController refreshUIForCurrentPost];
+        [appDelegate showContentDetailViewController:self.postDetailViewController];
+        [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
+    }
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -266,10 +219,7 @@
 }
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
-	if (indexPath.row == [[BlogDataManager sharedDataManager] countOfPostTitles])
-		return NO;
-	else
-		return YES;
+    return YES;
 }
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -290,79 +240,11 @@
 #pragma mark -
 #pragma mark Custom methods
 
-- (void)scrollToFirstCell {
-    NSIndexPath *indexPath = NULL;
-	
-    if ([self tableView:self.tableView numberOfRowsInSection:LOCAL_DRAFTS_SECTION] > 0) {
-        NSUInteger indexes[] = {LOCAL_DRAFTS_SECTION, 0};
-        indexPath = [NSIndexPath indexPathWithIndexes:indexes length:2];
-    }
-	else if ([self tableView:self.tableView numberOfRowsInSection:POSTS_SECTION] > 0) {
-        NSUInteger indexes[] = {POSTS_SECTION, 0};
-        indexPath = [NSIndexPath indexPathWithIndexes:indexes length:2];
-    }
-	
-    if (indexPath) {
-        [self.tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionTop animated:NO];
-    }
-}
-
-- (void)loadPosts {
-    BlogDataManager *dm = [BlogDataManager sharedDataManager];
-	self.drafts = [draftManager getType:@"post" forBlog:[[dm currentBlog] valueForKey:@"blogid"]];
-    dm.isLocaDraftsCurrent = NO;
-    [dm loadPostTitlesForCurrentBlog];
-	[self performSelectorOnMainThread:@selector(refreshPostList) withObject:nil waitUntilDone:NO];
-}
-
 - (void)refreshPostList {
-    [self.tableView reloadData];
-	
-	//danroundhill: commenting this out for now, it causes the selected index to 'blink' 3 or 4 times while the refresh is occuring on iPad. Not sure what the point of this code is anyways...
-	/*
-	if (DeviceIsPad() == YES) {
-		if (self.selectedIndexPath) {
-			self.drafts = [draftManager getType:@"post" forBlog:[[[BlogDataManager sharedDataManager] currentBlog] valueForKey:@"blogid"]];
-			// TODO: make this more general. Pages are going to want to do it as well.
-			if (self.selectedIndexPath.section >= [self numberOfSectionsInTableView:self.tableView]
-				|| self.selectedIndexPath.row >= [self tableView:self.tableView numberOfRowsInSection:self.selectedIndexPath.section])
-			{
-				return;
-			}
-			
-			[self reselect];
-		}
-	}*/
-}
-
-- (void)goToHome:(id)sender {
-    [[BlogDataManager sharedDataManager] resetCurrentBlog];
-    [self popTransition:self.navigationController.view];
-}
-
-- (BOOL)handleAutoSavedContext:(NSInteger)tag {
-	//NSLog(@"Autosaving...");
-    if ([[BlogDataManager sharedDataManager] makeAutoSavedPostCurrentForCurrentBlog]) {
-        NSString *title = [[BlogDataManager sharedDataManager].currentPost valueForKey:@"title"];
-        title = (title == nil ? @"" : title);
-        NSString *titleStr = [NSString stringWithFormat:@"Your last session was interrupted. Unsaved edits to the post \"%@\" were recovered.", title];
-        UIAlertView *alert1 = [[UIAlertView alloc] initWithTitle:@"Recovered Post"
-														 message:titleStr
-														delegate:self
-											   cancelButtonTitle:nil
-											   otherButtonTitles:@"Review Post", nil];
-		
-        alert1.tag = tag;
-		
-        [alert1 show];
-        WordPressAppDelegate *delegate = [[UIApplication sharedApplication] delegate];
-        [delegate setAlertRunning:YES];
-		
-        [alert1 release];
-        return YES;
-    }
-	
-    return NO;
+//    [self.tableView reloadData];
+    [self trySelectSomething];
+    [refreshButton stopAnimating];
+    [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
 }
 
 - (void)addRefreshButton {
@@ -376,23 +258,18 @@
 
 - (void)refreshHandler {
     [refreshButton startAnimating];
+    [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
     [self performSelectorInBackground:@selector(syncPosts) withObject:nil];
-    [self loadPosts];
 }
 
 - (void)syncPosts {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
-    BlogDataManager *dm = [BlogDataManager sharedDataManager];
-	
-    if ([dm syncPostsForCurrentBlog]) {
-        [self loadPosts];
-        [dm downloadAllCategoriesForBlog:[dm currentBlog]];
-        [self performSelectorOnMainThread:@selector(refreshPostList) withObject:nil waitUntilDone:NO];
-    }
-	
-    [refreshButton stopAnimating];
-    [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
+    NSError *error = nil;
+    // TODO: handle errors
+    [self.blog syncCategoriesWithError:&error];
+    // TODO: handle errors
+    [self.blog syncPostsWithError:&error];
+    [self performSelectorOnMainThread:@selector(refreshPostList) withObject:nil waitUntilDone:NO];
     [pool release];
 }
 
@@ -413,21 +290,6 @@
 	[self.tableView reloadData];
 }
 
-- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
-    [[BlogDataManager sharedDataManager] removeAutoSavedCurrentPostFile];
-    self.navigationItem.rightBarButtonItem = nil;
-    self.postDetailViewController.editMode = kAutorecoverPost;
-	
-	WordPressAppDelegate *delegate = [[UIApplication sharedApplication] delegate];
-	[delegate setAlertRunning:NO];
-	if (DeviceIsPad() == YES) {
-		[delegate showContentDetailViewController:self.postDetailViewController];
-	}
-	else {
-		[delegate showContentDetailViewController:self.postDetailViewController];
-	}
-}
-
 - (void)deletePostAtIndexPath:(id)object{
 	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 	
@@ -435,27 +297,24 @@
 	BlogDataManager *dataManager = [BlogDataManager sharedDataManager];
 	//NewObj* pNew = (NewObj*)oldObj;
 	NSIndexPath *indexPath = (NSIndexPath*)object;
+    Post *post = [resultsController objectAtIndexPath:indexPath];
 	
-    if (indexPath.section == LOCAL_DRAFTS_SECTION) {
-		Post *draft = [drafts objectAtIndex:indexPath.row];
-		[mediaManager removeForPostID:draft.postID andBlogURL:[[[BlogDataManager sharedDataManager] currentBlog] objectForKey:@"url"]];
+    if (post.local) {
+		[mediaManager removeForPostID:post.postID andBlogURL:[[[BlogDataManager sharedDataManager] currentBlog] objectForKey:@"url"]];
 		
-		NSManagedObject *objectToDelete = [drafts objectAtIndex:indexPath.row];
-		[appDelegate.managedObjectContext deleteObject:objectToDelete];
+        // FIXME: use custom post method
+		[appDelegate.managedObjectContext deleteObject:post];
 		
         // Commit the change.
         NSError *error;
         if (![appDelegate.managedObjectContext save:&error]) {
 			NSLog(@"Severe error when trying to delete local draft. Error: %@", error);
-        }
-		
-		[drafts removeObjectAtIndex:indexPath.row];
-        [self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:YES];
+        }		
     } 
 	else {
 		if (indexPath.section == POSTS_SECTION) {
 			//check for reachability
-			if ([[Reachability sharedReachability] internetConnectionStatus] == NotReachable) {
+			if ([[WPReachability sharedReachability] internetConnectionStatus] == NotReachable) {
 				UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Communication Error."
 																message:@"no internet connection."
 															   delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
@@ -478,7 +337,6 @@
 				//resync posts
 				[dataManager loadPostTitlesForCurrentBlog];
 				[self syncPosts];
-				[self loadPosts];
 			}
 		}
 	}
@@ -515,38 +373,136 @@
 	}
 }
 
-- (void)motionEnded:(UIEventSubtype)motion withEvent:(UIEvent *)event {
-	NSLog(@"Shake detected. Refreshing...");
-	if(event.subtype == UIEventSubtypeMotionShake)
-		[self refreshPostList];
-}
-
 - (void)showAddPostView {
 	WordPressAppDelegate *delegate = [[UIApplication sharedApplication] delegate];
-    [[BlogDataManager sharedDataManager] makeNewPostCurrent];
-	
-	if(postDetailViewController == nil) {
-		if(DeviceIsPad() == YES)
-			self.postDetailViewController = [[PostViewController alloc] initWithNibName:@"PostViewController-iPad" bundle:nil];
-		else
-			self.postDetailViewController = [[PostViewController alloc] initWithNibName:@"PostViewController" bundle:nil];
-	}
-	self.postDetailViewController.editMode = kNewPost;
-	self.postDetailViewController.title = @"Write";
-	[self.postDetailViewController refreshUIForCompose];
-	
-	if (DeviceIsPad() == NO) {
-		[delegate.navigationController pushViewController:self.postDetailViewController animated:YES];
-	}
-	else if (DeviceIsPad() == YES) {
+		
+	if (DeviceIsPad()) {
+        self.postReaderViewController = [[PostReaderViewController alloc] initWithPost:[Post newDraftForBlog:self.blog]];
+		[delegate showContentDetailViewController:self.postReaderViewController];
+        [self.postReaderViewController showModalEditor];
+	} else {
+        self.postDetailViewController = [[PostViewController alloc] initWithNibName:@"PostViewController" bundle:nil];
+        Post *post = [Post newDraftForBlog:self.blog];
+        self.postDetailViewController.post = (Post *)[post createRevision];
+        self.postDetailViewController.hasChanges = NO;
+        self.postDetailViewController.editMode = kNewPost;
+        [self.postDetailViewController refreshUIForCompose];
 		[delegate showContentDetailViewController:self.postDetailViewController];
 	}
+}
+
+- (void)setSelectedIndexPath:(NSIndexPath *)indexPath {
+    if (selectedIndexPath != indexPath) {
+        WordPressAppDelegate *delegate = [[UIApplication sharedApplication] delegate];
+        
+        [selectedIndexPath release];
+
+        if (indexPath != nil) {
+            selectedIndexPath = [indexPath retain];
+            self.postReaderViewController = [[PostReaderViewController alloc] initWithPost:[resultsController objectAtIndexPath:indexPath]];
+            [delegate showContentDetailViewController:self.postReaderViewController];
+        } else {
+            selectedIndexPath = nil;
+            [delegate showContentDetailViewController:nil];
+        }
+
+    } 
+}
+
+- (void)trySelectSomething {
+    if (!DeviceIsPad())
+        return;
+
+    if (self.navigationController.visibleViewController != self)
+        return;
+
+    if (!self.selectedIndexPath) {
+        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:0];
+        @try {
+            if ([resultsController fetchedObjects] &&
+                ([[resultsController fetchedObjects] count] > 0) &&
+                [resultsController objectAtIndexPath:indexPath]) {
+                self.selectedIndexPath = indexPath;
+            }
+        }
+        @catch (NSException * e) {
+            NSLog(@"Caught exception when looking for a post to select. Maybe there are no posts yet?");
+        }
+    }
+}
+
+#pragma mark -
+#pragma mark Fetched results controller
+
+- (NSFetchedResultsController *)resultsController {
+    if (resultsController != nil) {
+        return resultsController;
+    }
+    
+    WordPressAppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+    NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] init];
+    [fetchRequest setEntity:[NSEntityDescription entityForName:@"Post" inManagedObjectContext:appDelegate.managedObjectContext]];
+    [fetchRequest setPredicate:[NSPredicate predicateWithFormat:@"(blog == %@) && (original == nil)", self.blog]];
+    NSSortDescriptor *sortDescriptorLocal = [[NSSortDescriptor alloc] initWithKey:@"localType" ascending:YES];
+    NSSortDescriptor *sortDescriptorDate = [[NSSortDescriptor alloc] initWithKey:@"dateCreated" ascending:NO];
+    NSArray *sortDescriptors = [[NSArray alloc] initWithObjects:sortDescriptorLocal, sortDescriptorDate, nil];
+    [fetchRequest setSortDescriptors:sortDescriptors];
+    
+    NSFetchedResultsController *aResultsController = [[NSFetchedResultsController alloc]
+                                                      initWithFetchRequest:fetchRequest
+                                                      managedObjectContext:appDelegate.managedObjectContext
+                                                      sectionNameKeyPath:@"localType"
+                                                      cacheName:[NSString stringWithFormat:@"Post-%@", [self.blog objectID]]];
+    self.resultsController = aResultsController;
+    resultsController.delegate = self;
+    
+    [aResultsController release];
+    [fetchRequest release];
+    [sortDescriptorLocal release]; sortDescriptorLocal = nil;
+    [sortDescriptorDate release]; sortDescriptorDate = nil;
+    [sortDescriptors release]; sortDescriptors = nil;
+    
+    return resultsController;
+}
+
+- (void)controllerWillChangeContent:(NSFetchedResultsController *)controller {
+    //    [self.tableView beginUpdates];
+}
+
+- (void)controllerDidChangeContent:(NSFetchedResultsController *)controller {
+    //    [self.tableView endUpdates];
+}
+
+- (void)controller:(NSFetchedResultsController *)controller
+   didChangeObject:(id)anObject
+       atIndexPath:(NSIndexPath *)indexPath
+     forChangeType:(NSFetchedResultsChangeType)type
+      newIndexPath:(NSIndexPath *)newIndexPath {
+    [self.tableView reloadData];
+
+    if (!DeviceIsPad()) {
+        return;
+    }
+    switch (type) {
+        case NSFetchedResultsChangeDelete:
+            [self trySelectSomething];
+            break;
+        case NSFetchedResultsChangeInsert:
+            self.selectedIndexPath = newIndexPath;
+            [self.tableView selectRowAtIndexPath:self.selectedIndexPath animated:NO scrollPosition:UITableViewScrollPositionNone];
+        default:
+            [self.tableView selectRowAtIndexPath:self.selectedIndexPath animated:NO scrollPosition:UITableViewScrollPositionNone];
+            break;
+    }
 }
 
 #pragma mark -
 #pragma mark Dealloc
 
 - (void)dealloc {
+    self.blog = nil;
+    self.resultsController = nil;
+
 	[mediaManager release];
 	[draftManager release];
     [postDetailEditController release];

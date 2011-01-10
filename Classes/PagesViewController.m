@@ -12,12 +12,14 @@
 @implementation PagesViewController
 @synthesize newButtonItem, anyMorePages, selectedIndexPath, draftManager, appDelegate, tabController, drafts, mediaManager, dm;
 @synthesize pageManager, progressAlert, loadLimit, pages;
+@synthesize blog;
 
 #pragma mark -
 #pragma mark View Lifecycle
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    [FlurryAPI logEvent:@"Pages"];
 	
 	dm = [BlogDataManager sharedDataManager];
 	appDelegate = (WordPressAppDelegate *)[[UIApplication sharedApplication] delegate];
@@ -40,7 +42,7 @@
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(loadPages) name:@"DidGetPages" object:nil];
 //	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(loadPages) name:@"DidAddPage" object:nil];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(addNewPage:) name:@"DidCreatePage" object:nil];
-	
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refreshAfterSave) name:@"RefreshPageList" object:nil];
 	//[self loadPages];
 }
 
@@ -56,7 +58,7 @@
 		}
 	}
 	
-	if ([[Reachability sharedReachability] internetConnectionStatus]) {
+	if ([[WPReachability sharedReachability] internetConnectionStatus]) {
 		if ([defaults boolForKey:@"refreshPagesRequired"]) {
 			[self refreshHandler];
 			[defaults setBool:false forKey:@"refreshPagesRequired"];
@@ -217,8 +219,8 @@
 	switch (indexPath.section) {
 		case 0:
         {
-			Post *page = [drafts objectAtIndex:indexPath.row];
-			[pageViewController setSelectedPostID:page.uniqueID];
+//			Post *page = [drafts objectAtIndex:indexPath.row];
+//			[pageViewController setSelectedPostID:page.uniqueID];
 			[appDelegate showContentDetailViewController:pageViewController];
 			
 			self.selectedIndexPath = indexPath;
@@ -274,6 +276,14 @@
 	[self performSelectorInBackground:@selector(deletePageAtIndexPath:) withObject:indexPath];
 }
 
+- (UITableViewCellEditingStyle)tableView:(UITableView *)aTableView editingStyleForRowAtIndexPath:(NSIndexPath *)indexPath {
+	// Detemine if we are refreshing the pages
+	if (pageManager.isGettingPages) {
+		return UITableViewCellEditingStyleNone;     
+	}
+	return UITableViewCellEditingStyleDelete;
+}
+
 #pragma mark -
 #pragma mark Custom Methods
 
@@ -308,10 +318,9 @@
 }
 
 - (void)loadPages {
-    [refreshButton startAnimating];
-	[self refreshTable];
+     [refreshButton startAnimating];
 	self.drafts = [draftManager getType:@"page" forBlog:[dm.currentBlog valueForKey:@"blogid"]];
-	
+	[self refreshTable];
 	int pageCount = 0;
 	[pages removeAllObjects];
 	for(NSDictionary *page in pageManager.pages) {
@@ -326,6 +335,14 @@
 	NSSortDescriptor *pageSorter = [[NSSortDescriptor alloc] initWithKey:@"date_created_gmt" ascending:NO];
 	[pages sortUsingDescriptors:[NSArray arrayWithObject:pageSorter]];
     [pageSorter release];
+	
+	[self refreshTable];
+    [refreshButton stopAnimating];
+}
+
+- (void)refreshAfterSave {
+	[refreshButton startAnimating];
+	self.drafts = [draftManager getType:@"page" forBlog:[dm.currentBlog valueForKey:@"blogid"]];
 	
 	[self refreshTable];
     [refreshButton stopAnimating];
@@ -391,7 +408,7 @@
 		[self performSelectorOnMainThread:@selector(didDeleteDraftAtIndexPath:) withObject:indexPath waitUntilDone:NO];
     }
 	else if(indexPath.section == 1){
-		if ([[Reachability sharedReachability] internetConnectionStatus] == NotReachable) {
+		if ([[WPReachability sharedReachability] internetConnectionStatus] == NotReachable) {
 			UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Communication Error."
 															message:@"no internet connection."
 														   delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
@@ -414,7 +431,7 @@
 	[progressAlert dismissWithClickedButtonIndex:0 animated:YES];
 	[drafts removeObjectAtIndex:indexPath.row];
 	[self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:YES];
-	[self refreshTable];
+	//[self refreshTable];
 	[self loadPages];
 }
 

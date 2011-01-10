@@ -39,6 +39,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    [FlurryAPI logEvent:@"PostMedia"];
 	
 	self.currentOrientation = [self interpretOrientation:[UIDevice currentDevice].orientation];
 	
@@ -52,11 +53,20 @@
 	[self refreshProperties];
 	[self performSelectorInBackground:@selector(checkVideoEnabled) withObject:nil];
 	
+    [self addNotifications];
+}
+
+
+- (void)addNotifications {
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(mediaDidUploadSuccessfully:) name:VideoUploadSuccessful object:nil];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(mediaDidUploadSuccessfully:) name:ImageUploadSuccessful object:nil];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(mediaUploadFailed:) name:VideoUploadFailed object:nil];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(mediaUploadFailed:) name:ImageUploadFailed object:nil];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(shouldDeleteMedia:) name:@"ShouldDeleteMedia"	object:nil];
+}
+
+- (void)removeNotifications{
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -232,13 +242,13 @@
 		[self.spinner startAnimating];
 	}
 	else {
-		photos = [[mediaManager getForPostID:self.uniqueID andBlogURL:self.blogURL andMediaType:kImage] retain];
-		videos = [[mediaManager getForPostID:self.uniqueID andBlogURL:self.blogURL andMediaType:kVideo] retain];
+//		photos = [[mediaManager getForPostID:self.postDetailViewController.post.postID andBlogURL:self.blogURL andMediaType:kImage] retain];
+//		videos = [[mediaManager getForPostID:self.postDetailViewController.post.postID andBlogURL:self.blogURL andMediaType:kVideo] retain];
 		
-		if(photos.count == 0)
-			photos = [[mediaManager getForBlogURL:self.blogURL andMediaType:kImage] retain];
-		if(videos.count == 0)
-			videos = [[mediaManager getForBlogURL:self.blogURL andMediaType:kVideo] retain];
+//		if(photos.count == 0)
+//			photos = [[mediaManager getForBlogURL:self.blogURL andMediaType:kImage] retain];
+//		if(videos.count == 0)
+//			videos = [[mediaManager getForBlogURL:self.blogURL andMediaType:kVideo] retain];
 	}
 	[self updateMediaCount];
     [self.table reloadData];
@@ -547,6 +557,11 @@
 			[self processRecordedVideo];
 		else
 			[self performSelectorOnMainThread:@selector(processLibraryVideo) withObject:nil waitUntilDone:NO];
+		
+		if(DeviceIsPad() == YES){
+			[addPopover dismissPopoverAnimated:YES];
+			addPopover = nil;
+		}
 	}
 	else if([[info valueForKey:@"UIImagePickerControllerMediaType"] isEqualToString:@"public.image"]) {
 		UIImage *image = [info valueForKey:@"UIImagePickerControllerOriginalImage"];
@@ -582,8 +597,10 @@
 				break;
 		}
 		
-		if(DeviceIsPad() == YES)
+		if(DeviceIsPad() == YES){
 			[addPopover dismissPopoverAnimated:YES];
+			addPopover = nil;
+		}
 		else {
 			[pickerContainer dismissModalViewControllerAnimated:NO];
 			pickerContainer.view.frame = CGRectMake(0, 2000, 0, 0);
@@ -643,6 +660,7 @@
 			MPMoviePlayerController *mp = [[MPMoviePlayerController alloc] initWithContentURL:contentURL];
 			thumbnail = [mp thumbnailImageAtTime:(NSTimeInterval)2.0 timeOption:MPMovieTimeOptionNearestKeyFrame];
 			duration = [mp duration];
+            [mp stop];
             [mp release];
 		}
 		else {
@@ -670,6 +688,7 @@
 		MPMoviePlayerController *mp = [[MPMoviePlayerController alloc] initWithContentURL:contentURL];
 		thumbnail = [mp thumbnailImageAtTime:(NSTimeInterval)2.0 timeOption:MPMovieTimeOptionNearestKeyFrame];
 		duration = [mp duration];
+        [mp stop];
         [mp release];
 	}
 	else {
@@ -990,6 +1009,14 @@
 	if(self.uploadID != nil) {
 		NSDictionary *mediaData = [notification userInfo];
 		Media *media = [mediaManager get:self.uploadID];
+        if (media == nil) {
+            // FIXME: media deleted during upload should cancel the upload. In the meantime, we'll try not to crash
+            NSLog(@"Media deleted while uploading (%@)", self.uploadID);
+            [FlurryAPI logError:@"MediaDeleted"
+                        message:[NSString stringWithFormat:@"Media deleted while uploading (%@)", self.uploadID]
+                          error:nil];
+            return;
+        }
 		media.remoteURL = [mediaData objectForKey:@"url"];
 		media.shortcode = [mediaData objectForKey:@"shortcode"];
 		[[NSNotificationCenter defaultCenter] postNotificationName:@"ShouldInsertMediaBelow" object:media];
@@ -1008,11 +1035,15 @@
 }
 
 - (void)mediaUploadFailed:(NSNotification *)notification {
+	if (self.uploadID != nil) {
+		Media *media = [mediaManager get:self.uploadID];
+		[self deleteMedia:media];
+	}
 	[UIView beginAnimations:@"Removing mediaUploader" context:nil];
 	[UIView setAnimationDuration:4.0];
 	[UIView setAnimationDelegate:self];
 	[UIView setAnimationDidStopSelector:@selector(removemediaUploader:finished:context:)];
-	[mediaUploader.view setFrame:CGRectMake(0, 480, 320, 40)];
+	[mediaUploader.view setFrame:CGRectMake(0, self.view.frame.size.height + 800, 320, 40)];
 	[UIView commitAnimations];
 	self.isAddingMedia = NO;
 	[self refreshMedia];
@@ -1044,8 +1075,12 @@
 			
 			if(textRange.location != NSNotFound)
 			{
+                NSError *error = nil;
 				NSString *username = [[[BlogDataManager sharedDataManager] currentBlog] valueForKey:@"username"];
-				NSString *password = [[NSUserDefaults standardUserDefaults] objectForKey:@"wpcom_password_preference"];
+				NSString *password = [SFHFKeychainUtils getPasswordForUsername:username
+                                                                            andServiceName:@"WordPress.com"
+                                                                                     error:&error];
+
 				NSArray *args = [NSArray arrayWithObjects:[[[BlogDataManager sharedDataManager] currentBlog] valueForKey:kBlogId],
 								 username, password, nil];
 								
@@ -1125,6 +1160,7 @@
 }
 
 - (void)shouldDeleteMedia:(NSNotification *)notification {
+	[FlurryAPI logEvent:@"PostMedia#shouldDeleteMedia"];
 	[self deleteMedia:[notification object]];
 	[self refreshMedia];
 }

@@ -20,6 +20,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    [FlurryAPI logEvent:@"EditPage"];
 		
 	appDelegate = (WordPressAppDelegate *)[[UIApplication sharedApplication] delegate];
 	pageDetailView = (PageViewController *)self.tabBarController.parentViewController;
@@ -273,6 +274,9 @@
 - (void)textFieldDidEndEditing:(UITextField *)textField {
 	selectedSection = nil;
 	[textField resignFirstResponder];
+    if ([textField.text isEqualToString:@"#%#"]) {
+        [NSException raise:@"Test exception" format:@"Nothing bad, actually"];
+    }
 	[self refreshPage];
 	[self refreshTable];
 }
@@ -310,9 +314,8 @@
 	[self refreshTable];
 }
 
-- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
+- (void)textViewDidChange:(UITextView *)textView {
 	[self refreshPage];
-    return TRUE;
 }
 
 #pragma mark -
@@ -325,7 +328,7 @@
 		
 		if(delegate.selectedPostID != nil) {
 			self.page = [[delegate.draftManager get:delegate.selectedPostID] retain];
-			if(self.page.uniqueID == delegate.selectedPostID) {
+			if(self.page.postID == delegate.selectedPostID) {
 				// Load from Core Data
 				
 				// Change this line when we rid ourselves of BlogDataManager
@@ -531,12 +534,15 @@
 	[titleTextField resignFirstResponder];
 	[contentTextView resignFirstResponder];
 	
-	self.page.status = @"publish";
+	// If the page started out as a Local Draft, set the status to publish.
+	if([self.page.status isEqualToString:kLocalDraftKey] == YES)
+		self.page.status = @"publish";
+	
 	if(self.isLocalDraft == YES) {
 		self.isLocalDraft = NO;
 		
 		// If the page started out as a Local Draft, remove the selectedPostID field so it will move forward as a Create.
-		if([originalStatus isEqualToString:@"local-draft"] == YES)
+		if([originalStatus isEqualToString:kLocalDraftKey] == YES)
 			delegate.selectedPostID = nil;
 	}
 	
@@ -590,13 +596,15 @@
     [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
 	
 	if(DeviceIsPad() == YES) {
-		
+		[self refreshButtons];
 		// Make sure our Pages list refreshes
-		if(page.wasLocalDraft)
-			[[NSNotificationCenter defaultCenter] postNotificationName:@"PagesUpdated" object:nil ];
-		else
-			[[NSNotificationCenter defaultCenter] postNotificationName:@"AsynchronousPostIsPosted" object:nil ];
+//		if(page.wasLocalDraft)
+//			[[NSNotificationCenter defaultCenter] postNotificationName:@"PagesUpdated" object:nil];
+//		else
+//			[[NSNotificationCenter defaultCenter] postNotificationName:@"AsynchronousPostIsPosted" object:nil];
 	}
+	[[NSNotificationCenter defaultCenter] postNotificationName:@"RefreshPageList" object:nil];
+	
 	
 	[delegate dismiss:self];
 }

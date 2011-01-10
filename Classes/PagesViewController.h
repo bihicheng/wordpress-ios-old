@@ -14,7 +14,7 @@
 #import "DraftManager.h"
 #import "MediaManager.h"
 #import "BlogDataManager.h"
-#import "Reachability.h"
+#import "WPReachability.h"
 #import "WPProgressHUD.h"
 #import "UILoadMoreCell.h"
 #import "Post.h"
@@ -48,6 +48,7 @@
 @property (nonatomic, retain) NSMutableArray *drafts, *pages;
 @property (nonatomic, retain) WPProgressHUD *progressAlert;
 @property (nonatomic, assign) int loadLimit;
+@property (nonatomic, retain) Blog *blog;
 
 - (void)loadPages;
 - (void)showAddNewPage;

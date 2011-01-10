@@ -28,9 +28,9 @@
 		return (id) err;
 	
  	if (data != nil) {
-		NSString  *str = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+		NSString  *str = [[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease];
 		if ( ! str ) {
-			str = [[NSString alloc] initWithData:data encoding:[NSString defaultCStringEncoding]];
+			str = [[[NSString alloc] initWithData:data encoding:[NSString defaultCStringEncoding]] autorelease];
 			data = [str dataUsingEncoding:NSUTF8StringEncoding allowLossyConversion:YES];
 		}
 		
@@ -52,7 +52,7 @@
 				return (id) err;
 			}
 		}
-		
+
 		return [[[XMLRPCResponse alloc] initWithData: data] autorelease];
 	}
 	

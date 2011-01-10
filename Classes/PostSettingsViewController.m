@@ -44,7 +44,9 @@
 }
 
 - (void)endEditingAction:(id)sender {
+	if (passwordTextField != nil){
     [passwordTextField resignFirstResponder];
+	}
 }
 
 - (void)textFieldDidBeginEditing:(UITextField *)textField {
@@ -102,6 +104,8 @@
 }
 
 - (void)viewDidLoad {
+    [FlurryAPI logEvent:@"PostSettings"];
+
     passwordLabel.font = [UIFont boldSystemFontOfSize:17.0f];
     publishOnLabel.font = [UIFont boldSystemFontOfSize:17.0f];
     passwordTextField.font = [UIFont systemFontOfSize:16];

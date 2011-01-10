@@ -101,7 +101,22 @@
     [super dismissModalViewControllerAnimated:(BOOL)animated];
 }
 
+- (void)pushViewController:(UIViewController *)viewController animated:(BOOL)animated {
+    flag = YES;
+    if (self.navigationController) {
+        [self.navigationController pushViewController:viewController animated:animated];
+    }
+}
+
+- (void)popViewControllerAnimated:(BOOL) animated {
+    flag = NO;
+    if (self.navigationController) {
+        [self.navigationController popViewControllerAnimated:animated];
+    }
+}
+
 - (void)viewWillAppear:(BOOL)animated {
+    flag = NO;
     [super viewWillAppear:animated];
     [tableView reloadData];
 }

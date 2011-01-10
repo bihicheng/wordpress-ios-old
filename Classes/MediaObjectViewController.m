@@ -19,7 +19,9 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    [FlurryAPI logEvent:@"MediaObject"];
 	appDelegate = (WordPressAppDelegate *)[[UIApplication sharedApplication] delegate];
+	NSLog(@"media: %@", media);
 	
 	if((media != nil) && ([media.mediaType isEqualToString:@"video"])) {
 		self.navigationItem.title = @"Video";
@@ -39,6 +41,12 @@
 
 - (void)viewDidUnload {
     [super viewDidUnload];
+}
+
+- (void)viewWillDisappear:(BOOL)animated {
+    if (videoPlayer) {
+        [videoPlayer stop];
+    }
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {

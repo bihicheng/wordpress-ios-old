@@ -7,9 +7,6 @@
 #import "PostLocationViewController.h"
 #import "WordPressAppDelegate.h"
 #import "Post.h"
-#import "AutosaveViewController.h"
-#import "AutosaveManager.h"
-#import "DraftManager.h"
 #import "TransparentToolbar.h"
 #import "WPProgressHUD.h"
 
@@ -24,22 +21,13 @@
     PostPreviewViewController *postPreviewController;
     PostSettingsViewController *postSettingsController;
     PostMediaViewController *mediaViewController;
-    PostsViewController *postsListController;
     CommentsViewController *commentsViewController;
-	Post *post;
-	AutosaveManager *autosaveManager;
-	DraftManager *draftManager;
-	BlogDataManager *dm;
     
     UIViewController *selectedViewController;
-	UIPopoverController *autosavePopover;
-    WPNavigationLeftButtonView *leftView;
 	WPProgressHUD *spinner;
 
-    BOOL hasChanges, hasSaved, isVisible, didConvertDraftToPublished, isShowingAutosaves, isPublishing, isShowingKeyboard;
-	BOOL wasLocalDraft;
+    BOOL hasChanges, hasSaved, isVisible, isPublishing, isShowingKeyboard;
     EditPostMode editMode;
-    NSTimer *autoSaveTimer;
 	NSURLConnection *connection;
 	NSURLRequest *urlRequest;
 	NSURLResponse *urlResponse;
@@ -58,21 +46,17 @@
 	IBOutlet UIToolbar *editToolbar;
 	IBOutlet UIToolbar *previewToolbar;
 	IBOutlet UIBarButtonItem *cancelEditButton;
-	IBOutlet AutosaveViewController *autosaveView;
 }
 
-@property (nonatomic, retain) WPNavigationLeftButtonView *leftView;
 @property (nonatomic, retain) EditPostViewController *postDetailViewController;
 @property (nonatomic, retain) IBOutlet EditPostViewController *postDetailEditController;
 @property (nonatomic, retain) IBOutlet PostPreviewViewController *postPreviewController;
 @property (nonatomic, retain) IBOutlet PostSettingsViewController *postSettingsController;
 @property (nonatomic, retain) IBOutlet PostMediaViewController *mediaViewController;
 @property (nonatomic, retain) IBOutlet CommentsViewController *commentsViewController;
-@property (nonatomic, assign) PostsViewController *postsListController;
-@property (nonatomic, retain) UIPopoverController *autosavePopover;
 @property (nonatomic, assign) UIViewController *selectedViewController;
-@property (nonatomic, assign) BOOL hasChanges, hasSaved, isVisible, didConvertDraftToPublished, isShowingAutosaves, isPublishing;
-@property (nonatomic, assign) BOOL isShowingKeyboard, wasLocalDraft;
+@property (nonatomic, assign) BOOL hasChanges, hasSaved, isVisible, isPublishing;
+@property (nonatomic, assign) BOOL isShowingKeyboard;
 @property (nonatomic, assign) EditPostMode editMode;
 @property (readonly) UITabBarController *tabController;
 @property (nonatomic, retain) IBOutlet UIToolbar *toolbar;
@@ -82,18 +66,13 @@
 @property (nonatomic, retain) IBOutlet UIBarButtonItem *settingsButton;
 @property (nonatomic, retain) IBOutlet UIToolbar *editToolbar;
 @property (nonatomic, retain) IBOutlet UIBarButtonItem *cancelEditButton;
-@property (nonatomic, assign) UIBarButtonItem *leftBarButtonItemForEditPost;
 @property (nonatomic, retain) Post *post;
 @property (nonatomic, retain) NSURLConnection *connection;
 @property (nonatomic, retain) NSURLRequest *urlRequest;
 @property (nonatomic, retain) NSURLResponse *urlResponse;
 @property (nonatomic, retain) NSMutableData *payload;
 @property (nonatomic, retain) WordPressAppDelegate *appDelegate;
-@property (nonatomic, retain) IBOutlet AutosaveViewController *autosaveView;
-@property (nonatomic, retain) AutosaveManager *autosaveManager;
-@property (nonatomic, retain) DraftManager *draftManager;
 @property (nonatomic, retain) WPProgressHUD *spinner;
-@property (nonatomic, assign) BlogDataManager *dm;
 
 - (IBAction)cancelView:(id)sender;
 - (void)refreshUIForCompose;
@@ -108,12 +87,7 @@
 - (void)dismissEditView;
 - (void)verifyPublishSuccessful;
 - (void)stop;
-- (IBAction)toggleAutosaves:(id)sender;
-- (void)checkAutosaves;
-- (void)restoreFromAutosave:(NSNotification *)notification;
-- (void)showAutosaves;
-- (void)hideAutosaves;
 - (void)setMode:(EditPostMode)newMode;
 - (void)refreshButtons;
-
+- (void)showError;
 @end

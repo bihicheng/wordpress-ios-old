@@ -2,12 +2,14 @@
 
 @implementation BlogsViewController
 @synthesize blogsList;
+@synthesize resultsController;
 
 #pragma mark -
 #pragma mark View lifecycle
 
 - (void)viewDidLoad {
 	appDelegate = (WordPressAppDelegate *)[[UIApplication sharedApplication] delegate];
+    [FlurryAPI logEvent:@"Blogs"];
 	
     self.title = NSLocalizedString(@"Blogs", @"RootViewController_Title");
     self.navigationItem.rightBarButtonItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd
@@ -15,14 +17,18 @@
 																							action:@selector(showAddBlogView:)] autorelease];
     self.navigationItem.backBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Blogs" style:UIBarButtonItemStyleBordered target:nil action:nil]; 
 	self.tableView.allowsSelectionDuringEditing = YES;
-
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(blogsRefreshNotificationReceived:) name:@"BlogsRefreshNotification" object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(showBlogWithoutAnimation) name:@"NewBlogAdded" object:nil];
     
+    NSError *error = nil;
+    if (![self.resultsController performFetch:&error]) {
+        NSLog(@"Error fetching request (Blogs) %@", [error localizedDescription]);
+    } else {
+        NSLog(@"fetched blogs: %@", [resultsController fetchedObjects]);
+    }
+
 	// restore blog for iPad
 	if (DeviceIsPad() == YES) {
 		if (appDelegate.shouldLoadBlogFromUserDefaults) {
-			[self showBlog:NO];
+			//[self showBlog:NO];
 		}
 	}
 	
@@ -70,10 +76,10 @@
 //	[appDelegate syncBlogs];
 //	[appDelegate syncBlogCategoriesAndStatuses];
 	
-	if([[BlogDataManager sharedDataManager] countOfBlogs] > 0)
-		self.navigationItem.leftBarButtonItem = self.editButtonItem;
-	else
-		self.navigationItem.leftBarButtonItem = nil;
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(blogsRefreshNotificationReceived:) name:@"BlogsRefreshNotification" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(showBlogWithoutAnimation) name:@"NewBlogAdded" object:nil];
+	
+	[self checkEditButton];
 	
 	self.blogsList = nil;
 	self.blogsList = [[[BlogDataManager sharedDataManager] blogsList] mutableCopy];
@@ -92,10 +98,19 @@
 	[super viewWillDisappear:animated];
 }
 
+- (void) checkEditButton{
+	if([Blog countWithContext:appDelegate.managedObjectContext] > 0)
+		self.navigationItem.leftBarButtonItem = self.editButtonItem;
+	else
+		self.navigationItem.leftBarButtonItem = nil;
+}
+
 - (void)blogsRefreshNotificationReceived:(NSNotification *)notification {
 	self.blogsList = nil;
 	self.blogsList = [[[BlogDataManager sharedDataManager] blogsList] mutableCopy];
+    [resultsController performFetch:nil];
     [self.tableView reloadData];
+	[self checkEditButton];
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
@@ -106,39 +121,41 @@
 #pragma mark UITableView Delegate Methods
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return 1;
+    return [[resultsController sections] count];
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return blogsList.count;
+    id <NSFetchedResultsSectionInfo> sectionInfo = nil;
+    sectionInfo = [[resultsController sections] objectAtIndex:section];
+    return [sectionInfo numberOfObjects];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     static NSString *CellIdentifier = @"BlogCell";
     UITableViewCell *cell = (UITableViewCell *)[tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-	Blog *blog = [[Blog alloc] initWithIndex:indexPath.row];
+    Blog *blog = [resultsController objectAtIndexPath:indexPath];
 
     if (cell == nil) {
-        cell = [[[UITableViewCell alloc] initWithFrame:CGRectZero reuseIdentifier:CellIdentifier] autorelease];
+        cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier] autorelease];
     }
 	
 #if defined __IPHONE_3_0
-    cell.textLabel.text = [NSString decodeXMLCharactersIn:[[blogsList objectAtIndex:(indexPath.row)] valueForKey:@"blogName"]];
+    cell.textLabel.text = [NSString decodeXMLCharactersIn:[blog blogName]];
+    cell.detailTextLabel.text = [blog hostURL];
     cell.imageView.image = [blog favicon];
 #else if defined __IPHONE_2_0
-    cell.text = [NSString decodeXMLCharactersIn:[[blogsList objectAtIndex:(indexPath.row)] valueForKey:@"blogName"]];
+    cell.text = [NSString decodeXMLCharactersIn:[blog blogName]];
     cell.image = [blog favicon];
 #endif
 
     cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-	[blog release];
 
     return cell;
 }
 
 - (void)tableView:(UITableView *)atableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if ([self.tableView cellForRowAtIndexPath:indexPath].editing) {
-        [[BlogDataManager sharedDataManager] copyBlogAtIndexCurrent:(indexPath.row)];
+        Blog *blog = [resultsController objectAtIndexPath:indexPath];
 		
 		EditSiteViewController *editSiteViewController;
 		if (DeviceIsPad() == YES)
@@ -146,11 +163,7 @@
 		else
 			editSiteViewController = [[EditSiteViewController alloc] initWithNibName:@"EditSiteViewController" bundle:nil];
 		
-        editSiteViewController.blogIndex = indexPath.row;
-		editSiteViewController.blogName = [[[BlogDataManager sharedDataManager] blogAtIndex:indexPath.row] objectForKey:@"blogName"];
-		editSiteViewController.blogID = [[[BlogDataManager sharedDataManager] blogAtIndex:indexPath.row] objectForKey:kBlogId];
-		editSiteViewController.url = [[[BlogDataManager sharedDataManager] blogAtIndex:indexPath.row] objectForKey:@"url"];
-		editSiteViewController.host = [[[BlogDataManager sharedDataManager] blogAtIndex:indexPath.row] objectForKey:kBlogHostName];
+        editSiteViewController.blog = blog;
 		
 		if(DeviceIsPad() == YES) {
 			UINavigationController *aNavigationController = [[UINavigationController alloc] initWithRootViewController:editSiteViewController];
@@ -168,10 +181,8 @@
 		
     }
 	else if ([self canChangeCurrentBlog]) {
-		[[BlogDataManager sharedDataManager] makeBlogAtIndexCurrent:(indexPath.row)];
-		[[BlogDataManager sharedDataManager] setSelectedBlogID:
-		[[[BlogDataManager sharedDataManager] blogAtIndex:indexPath.row] objectForKey:@"blogid"]];
-		[self showBlog:YES];
+        Blog *blog = [resultsController objectAtIndexPath:indexPath];
+		[self showBlog:blog animated:YES];
     }
 	[self.tableView deselectRowAtIndexPath:[self.tableView indexPathForSelectedRow] animated:YES];
 }
@@ -179,18 +190,23 @@
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     if (editingStyle == UITableViewCellEditingStyleDelete && [self canChangeCurrentBlog]) {
 		[tableView beginUpdates];
-		[self performSelectorInBackground:@selector(deleteBlog:) withObject:indexPath];
-		[blogsList removeObjectAtIndex:indexPath.row];
-		[tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath]
-						 withRowAnimation:UITableViewRowAnimationFade];
+//		[self performSelectorInBackground:@selector(deleteBlog:) withObject:indexPath];
+        Blog *blog = [resultsController objectAtIndexPath:indexPath];
+        [appDelegate.managedObjectContext deleteObject:blog];
+        blog = nil;
 		[tableView endUpdates];
+        NSError *error = nil;
+        if (![appDelegate.managedObjectContext save:&error]) {
+            NSLog(@"Unresolved Core Data Save error %@, %@", error, [error userInfo]);
+            exit(-1);
+        }
     }
 }
 
 - (void)edit:(id)sender {
 	if ([self canChangeCurrentBlog]) {
 		[BlogDataManager sharedDataManager].shouldStopSyncingBlogs = YES;
-		UIBarButtonItem *cancelButton = [[[UIBarButtonItem alloc] initWithTitle:@"Cancel"
+		UIBarButtonItem *cancelButton = [[[UIBarButtonItem alloc] initWithTitle:@"Done"
 																		  style:UIBarButtonItemStyleDone
 																		 target:self
 																		 action:@selector(cancel:)] autorelease];
@@ -236,24 +252,15 @@
 }
 
 - (void)showBlogWithoutAnimation {
-    [self showBlog:NO];
+//    [self showBlog:NO];
 }
 
-- (void)showBlog:(BOOL)animated {
-    BlogDataManager *dataManager = [BlogDataManager sharedDataManager];
-    NSString *url = [dataManager.currentBlog valueForKey:@"url"];
-	
-    if (url != nil &&[url length] >= 7 &&[url hasPrefix:@"http://"]) {
-        url = [url substringFromIndex:7];
-    }
-	
-    if (url != nil &&[url length]) {
-        url = @"wordpress.com";
-    }
-	
-    [Reachability sharedReachability].hostName = url;
+- (void)showBlog:(Blog *)blog animated:(BOOL)animated {
+    [WPReachability sharedReachability].hostName = blog.hostURL;
 	
 	BlogViewController *blogViewController = [[BlogViewController alloc] initWithNibName:@"BlogViewController" bundle:nil];
+    blogViewController.blog = blog;
+    [appDelegate setCurrentBlog:blog];
 	[self.navigationController pushViewController:blogViewController animated:animated];
 	[blogViewController release];
 }
@@ -278,7 +285,7 @@
 - (void)didDeleteBlogSuccessfully:(NSIndexPath *)indexPath {
 	[BlogDataManager sharedDataManager].shouldStopSyncingBlogs = YES;
 	[[NSNotificationCenter defaultCenter] postNotificationName:@"BlogsEditedNotification" object:nil];
-	if ([[BlogDataManager sharedDataManager] countOfBlogs] == 0) {
+	if ([Blog countWithContext:appDelegate.managedObjectContext] == 0) {
 		self.navigationItem.leftBarButtonItem = nil;
 		[self.tableView setEditing:NO animated:YES];
 	}
@@ -302,6 +309,52 @@
 }
 
 #pragma mark -
+#pragma mark Fetched results controller
+
+- (NSFetchedResultsController *)resultsController {
+    if (resultsController != nil) {
+        return resultsController;
+    }
+
+    NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] init];
+    [fetchRequest setEntity:[NSEntityDescription entityForName:@"Blog" inManagedObjectContext:appDelegate.managedObjectContext]];
+    NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"blogName" ascending:YES];
+    NSArray *sortDescriptors = [[NSArray alloc] initWithObjects:sortDescriptor, nil];
+    [fetchRequest setSortDescriptors:sortDescriptors];
+
+    NSFetchedResultsController *aResultsController = [[NSFetchedResultsController alloc]
+                         initWithFetchRequest:fetchRequest
+                         managedObjectContext:appDelegate.managedObjectContext
+                         sectionNameKeyPath:nil
+                         cacheName:@"Blog"];
+    self.resultsController = aResultsController;
+    resultsController.delegate = self;
+
+    [aResultsController release];
+    [fetchRequest release];
+    [sortDescriptor release]; sortDescriptor = nil;
+    [sortDescriptors release]; sortDescriptors = nil;
+
+    return resultsController;
+}
+
+- (void)controllerWillChangeContent:(NSFetchedResultsController *)controller {
+//    [self.tableView beginUpdates];
+}
+
+- (void)controllerDidChangeContent:(NSFetchedResultsController *)controller {
+//    [self.tableView endUpdates];
+}
+
+- (void)controller:(NSFetchedResultsController *)controller
+   didChangeObject:(id)anObject
+       atIndexPath:(NSIndexPath *)indexPath
+     forChangeType:(NSFetchedResultsChangeType)type
+      newIndexPath:(NSIndexPath *)newIndexPath {
+    [self.tableView reloadData];
+}
+
+#pragma mark -
 #pragma mark Memory Management
 
 - (void)didReceiveMemoryWarning {
@@ -311,7 +364,8 @@
 }
 
 - (void)dealloc {
-	[blogsList release];
+    self.resultsController = nil;
+	[blogsList release]; blogsList = nil;
     [super dealloc];
 }
 

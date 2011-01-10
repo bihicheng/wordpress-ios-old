@@ -12,7 +12,7 @@
 #import "CommentViewController.h"
 #import "WordPressAppDelegate.h"
 #import "WPProgressHUD.h"
-#import "Reachability.h"
+#import "WPReachability.h"
 #import "CommentViewController.h"
 
 #define COMMENTS_SECTION        0
@@ -47,6 +47,7 @@
 @synthesize selectedIndexPath;
 @synthesize commentViewController;
 @synthesize isSecondaryViewController;
+@synthesize blog;
 
 #pragma mark -
 #pragma mark Memory Management
@@ -116,6 +117,7 @@
 	[segmentedControl addTarget:self action:@selector(reloadTableView) forControlEvents:UIControlEventValueChanged];
 	
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(commentsSynced:) name:@"CommentRefreshNotification" object:nil];
+	[self setEditing:NO];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -135,7 +137,7 @@
     
 	[self refreshCommentsList];
 	
-	if ([[Reachability sharedReachability] internetConnectionStatus])
+	if ([[WPReachability sharedReachability] internetConnectionStatus])
 	{
 		if([[NSUserDefaults standardUserDefaults] boolForKey:@"refreshCommentsRequired"]) {
 			[self refreshHandler];
@@ -250,9 +252,8 @@
     if ([delegate isAlertRunning]) {
         [progressAlert dismissWithClickedButtonIndex:0 animated:YES];
         [progressAlert release];
-    } else {
-        [refreshButton stopAnimating];
-    }
+	}
+	[refreshButton stopAnimating];
 
     [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
     [pool release];
@@ -319,6 +320,7 @@
 	
 	// calling UIKit from a background thread is bad
 	[commentsTableView performSelectorOnMainThread:@selector(reloadData) withObject:nil waitUntilDone:NO];
+    [self performSelectorOnMainThread:@selector(refreshCommentsList) withObject:nil waitUntilDone:NO];
     [self setEditing:FALSE];
 
     [progressAlert dismissWithClickedButtonIndex:0 animated:YES];

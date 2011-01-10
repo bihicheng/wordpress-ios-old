@@ -7,6 +7,16 @@
 
 #import "WPcomLoginViewController.h"
 
+@interface WPcomLoginViewController(PrivateMethods)
+- (void)saveLoginData;
+- (BOOL)authenticate;
+- (void)clearLoginData;
+- (void)signIn:(id)sender;
+- (IBAction)cancel:(id)sender;
+- (void)refreshTable;
+- (void)didSignInSuccessfully;
+@end
+
 
 @implementation WPcomLoginViewController
 @synthesize footerText, buttonText, username, password, isAuthenticated, isSigningIn, WPcomXMLRPCUrl, tableView, appDelegate;
@@ -17,15 +27,19 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 	
+    [FlurryAPI logEvent:@"WPcomLogin"];
 	footerText = @" ";
 	buttonText = @"Sign In";
 	WPcomXMLRPCUrl = @"https://wordpress.com/xmlrpc.php";
 	self.navigationItem.title = @"Sign In";
 	
-	if([[NSUserDefaults standardUserDefaults] objectForKey:@"wpcom_username_preference"] != nil)
+	if([[NSUserDefaults standardUserDefaults] objectForKey:@"wpcom_username_preference"] != nil) {
+        NSError *error = nil;
 		username = [[NSUserDefaults standardUserDefaults] objectForKey:@"wpcom_username_preference"];
-	if([[NSUserDefaults standardUserDefaults] objectForKey:@"wpcom_password_preference"] != nil)
-		password = [[NSUserDefaults standardUserDefaults] objectForKey:@"wpcom_password_preference"];
+        password = [SFHFKeychainUtils getPasswordForUsername:username
+                                              andServiceName:@"WordPress.com"
+                                                       error:&error];
+    }
 	
 	if((![username isEqualToString:@""]) && (![password isEqualToString:@""]))
 		[self authenticate];
@@ -125,7 +139,7 @@
 				if ([indexPath row] == 0) {
 					loginTextField.placeholder = @"WordPress.com username";
 					loginTextField.keyboardType = UIKeyboardTypeEmailAddress;
-					loginTextField.returnKeyType = UIReturnKeyDone;
+					loginTextField.returnKeyType = UIReturnKeyNext;
 					loginTextField.tag = 0;
 					loginTextField.delegate = self;
 					if(username != nil)
@@ -248,14 +262,29 @@
 - (BOOL)textFieldShouldReturn:(UITextField *)textField {
 	[textField resignFirstResponder];
 	
-	if((textField.tag == 1) && (username != nil) && (password != nil)) {
-		if (!isSigningIn){
-			isSigningIn = YES;
-			[self refreshTable];
-			[self performSelectorInBackground:@selector(signIn:) withObject:self];
-		}
+	UITableViewCell *cell = nil;
+    UITextField *nextField = nil;
+    switch (textField.tag) {
+        case 0:
+            [textField endEditing:YES];
+            cell = [tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:1 inSection:0]];
+            if(cell != nil) {
+                nextField = (UITextField*)[cell viewWithTag:1];
+                if(nextField != nil)
+                    [nextField becomeFirstResponder];
+            }
+            break;
+        case 1:
+            if((username != nil) && (password != nil)) {
+                if (!isSigningIn){
+                    isSigningIn = YES;
+                    [self refreshTable];
+                    [self performSelectorInBackground:@selector(signIn:) withObject:self];
+                }
+            }
+            break;
 	}
-	
+
 	return YES;	
 }
 
@@ -297,11 +326,21 @@
 #pragma mark Custom methods
 
 - (void)saveLoginData {
+    if (isAuthenticated) {
+        NSError *error = nil;
+        [SFHFKeychainUtils storeUsername:username
+                             andPassword:password
+                          forServiceName:@"WordPress.com"
+                          updateExisting:YES
+                                   error:&error];
+
+        if (error) {
+            NSLog(@"Error storing wpcom credentials: %@", [error localizedDescription]);
+        }
+    }
 	if(![username isEqualToString:@""])
 		[[NSUserDefaults standardUserDefaults] setObject:username forKey:@"wpcom_username_preference"];
-	if(![password isEqualToString:@""])
-		[[NSUserDefaults standardUserDefaults] setObject:password forKey:@"wpcom_password_preference"];
-	
+
 	if(isAuthenticated)
 		[[NSUserDefaults standardUserDefaults] setObject:@"1" forKey:@"wpcom_authenticated_flag"];
 	else
@@ -310,8 +349,11 @@
 }
 
 - (void)clearLoginData {
+    NSError *error = nil;
+    [SFHFKeychainUtils deleteItemForUsername:[[NSUserDefaults standardUserDefaults] objectForKey:@"wpcom_username_preference"]
+                              andServiceName:@"WordPress.com"
+                                       error:&error];
 	[[NSUserDefaults standardUserDefaults] removeObjectForKey:@"wpcom_username_preference"];
-	[[NSUserDefaults standardUserDefaults] removeObjectForKey:@"wpcom_password_preference"];
 	[[NSUserDefaults standardUserDefaults] removeObjectForKey:@"wpcom_authenticated_flag"];
 	[[NSUserDefaults standardUserDefaults] synchronize];
 }
@@ -326,13 +368,6 @@
 		[self clearLoginData];
 	}
 	return isAuthenticated;
-}
-
-- (void)selectPasswordField:(id)sender {
-	NSIndexPath *indexPath = [NSIndexPath indexPathForRow:1 inSection:0];
-	UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
-	UITextField *textField = [cell.contentView.subviews objectAtIndex:0];
-	[textField becomeFirstResponder];
 }
 
 - (void)signIn:(id)sender {

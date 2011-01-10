@@ -539,10 +539,6 @@ currentLocation, currentBlogIndex, shouldStopSyncingBlogs, shouldDisplayErrors, 
     return nil;
 }
 
-- (BOOL)postDescriptionHasValidDescription:(id)aPost {
-    return YES;
-}
-
 - (NSString *)imageTagForPath:(NSString *)path andURL:(NSString *)urlStr {
     NSArray *comps = [path componentsSeparatedByString:@"_"];
 	
@@ -1190,9 +1186,7 @@ currentLocation, currentBlogIndex, shouldStopSyncingBlogs, shouldDisplayErrors, 
         [unsupportedWordpress release];
         return NO;
     }
-	
-    [currentBlog setValue:[NSNumber numberWithBool:supportsPagesAndComments]   forKey:kSupportsPagesAndComments];
-	
+		
     [currentBlog setValue:xmlrpc ? xmlrpc:@"" forKey:@"xmlrpc"];
     [currentBlog setValue:(username ? username:@"")forKey:@"username"];
 	
@@ -1881,7 +1875,7 @@ currentLocation, currentBlogIndex, shouldStopSyncingBlogs, shouldDisplayErrors, 
     return [blogsList count];
 }
 
-- (NSMutableDictionary *)blogAtIndex:(NSUInteger)theIndex {
+- (NSMutableDictionary *)blogAtIndex:(NSInteger)theIndex {
     return [blogsList objectAtIndex:theIndex];
 }
 
@@ -1990,7 +1984,7 @@ currentLocation, currentBlogIndex, shouldStopSyncingBlogs, shouldDisplayErrors, 
     self->isLocaDraftsCurrent = YES;
 }
 
-- (void)copyBlogAtIndexCurrent:(NSUInteger)theIndex {
+- (void)copyBlogAtIndexCurrent:(NSInteger)theIndex {
     id cb = [[blogsList objectAtIndex:theIndex] mutableCopy];
     [self setCurrentBlog:cb];
     [cb release];
@@ -1999,8 +1993,8 @@ currentLocation, currentBlogIndex, shouldStopSyncingBlogs, shouldDisplayErrors, 
     currentBlogIndex = theIndex;
 }
 
-- (void)makeBlogAtIndexCurrent:(NSUInteger)theIndex {
-	if(blogsList.count > 0) {
+- (void)makeBlogAtIndexCurrent:(NSInteger)theIndex {
+	if((blogsList.count > 0) && (theIndex < blogsList.count)) {
 		[self setCurrentBlog:[blogsList objectAtIndex:theIndex]];
 	}
 	
@@ -2977,10 +2971,8 @@ currentLocation, currentBlogIndex, shouldStopSyncingBlogs, shouldDisplayErrors, 
     // #291 // [self syncPostsForBlog:aBlog];
     [self generateTemplateForBlog:aBlog];
 	
-    if ([[currentBlog valueForKey:kSupportsPagesAndComments] boolValue]) {
-        [self syncCommentsForBlog:aBlog];
-        // #291 // [self syncPagesForBlog:aBlog];
-    }
+    [self syncCommentsForBlog:aBlog];
+    // #291 // [self syncPagesForBlog:aBlog];
 	
     [self performSelectorOnMainThread:@selector(postBlogsRefreshNotificationInMainThread:) withObject:aBlog waitUntilDone:YES];
 	
@@ -2994,12 +2986,7 @@ currentLocation, currentBlogIndex, shouldStopSyncingBlogs, shouldDisplayErrors, 
 	
     // #291 // [self syncPostsForBlog:aBlog];
     [self generateTemplateForBlog:aBlog];
-	
-    if ([[currentBlog valueForKey:kSupportsPagesAndComments] boolValue]) {
-        //[self syncCommentsForBlog:aBlog showErrors:FALSE];
-        // #291 // [self syncPagesForBlog:aBlog];
-    }
-	
+		
     //Has been commented to avoid Empty Blog Creation.
     //	[aBlog setObject:[NSNumber numberWithInt:0] forKey:@"kIsSyncProcessRunning"];
     //	[self saveCurrentBlog];
@@ -3721,7 +3708,9 @@ currentLocation, currentBlogIndex, shouldStopSyncingBlogs, shouldDisplayErrors, 
 		if ([response isKindOfClass:[NSError class]]) {			
 			successFlag = NO;
 			return successFlag;
-		}
+		} else {
+            successFlag = YES;
+        }
 		
 		[appDelegate setPostID:[NSString stringWithFormat:@"%@", response]];
         [self fectchNewPost:response formBlog:currentBlog];
@@ -4876,8 +4865,8 @@ currentLocation, currentBlogIndex, shouldStopSyncingBlogs, shouldDisplayErrors, 
 					
 					NSLog(@"about to sync blog: %@", url);
 					
-					[Reachability sharedReachability].hostName = url;
-					if ([[Reachability sharedReachability] internetConnectionStatus]) {
+					[WPReachability sharedReachability].hostName = url;
+					if ([[WPReachability sharedReachability] internetConnectionStatus]) {
 						if(self.shouldStopSyncingBlogs == NO)
 							[self syncCommentsForBlog:blog];
 						if(self.shouldStopSyncingBlogs == NO)
@@ -4931,8 +4920,8 @@ currentLocation, currentBlogIndex, shouldStopSyncingBlogs, shouldDisplayErrors, 
 					if (url != nil &&[url length])
 						url = @"wordpress.com";
 					
-					[Reachability sharedReachability].hostName = url;
-					if ([[Reachability sharedReachability] internetConnectionStatus]) {
+					[WPReachability sharedReachability].hostName = url;
+					if ([[WPReachability sharedReachability] internetConnectionStatus]) {
 						@try {
 							[self syncCategoriesForBlog:blog];
 							[self syncStatusesForBlog:blog];
