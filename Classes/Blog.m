@@ -6,7 +6,7 @@
 //
 
 #import "Blog.h"
-#import "UIImage+INResizeImageAllocator.h"
+#import "UIImage+Resize.h"
 #import "WPDataController.h"
 
 @implementation Blog
@@ -105,11 +105,33 @@
         faviconImage = [UIImage imageWithContentsOfFile:faviconFilePath];
     }
 	else {
-		faviconImage = [UIImage imageNamed:@"favicon"];
+		faviconImage = [UIImage imageNamed:@"favicon.png"];
 		[self downloadFavicon];
 	}
 
     return faviconImage;
+}
+
+- (void)removeFavicon {
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	
+	NSString *faviconURL = [NSString stringWithFormat:@"%@/favicon.ico", self.url];
+	if(![faviconURL hasPrefix:@"http"])
+		faviconURL = [NSString stringWithFormat:@"http://%@", faviconURL];
+	
+    NSString *fileName = [NSString stringWithFormat:@"favicon-%@-%@.png", self.hostURL, self.blogID];
+	fileName = [fileName stringByReplacingOccurrencesOfRegex:@"http(s?)://" withString:@""];
+	NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+    NSString *faviconFilePath = [[paths objectAtIndex:0] stringByAppendingPathComponent:fileName];
+	
+	if ([[NSFileManager defaultManager] fileExistsAtPath:faviconFilePath]) {
+		NSError *error;
+		BOOL success =  [[NSFileManager defaultManager] removeItemAtPath:faviconFilePath error:&error];
+		if (!success) 
+			WPLog(@"Error deleting blog favicon: %@", [error localizedDescription]);
+	}
+	
+	[pool release];
 }
 
 - (void)downloadFaviconInBackground {
@@ -119,11 +141,16 @@
 	if(![faviconURL hasPrefix:@"http"])
 		faviconURL = [NSString stringWithFormat:@"http://%@", faviconURL];
 	
-    NSString *fileName = [NSString stringWithFormat:@"favicon-%@-%@.png", self.blogName, self.blogID];
+    NSString *fileName = [NSString stringWithFormat:@"favicon-%@-%@.png", self.hostURL, self.blogID];
 	fileName = [fileName stringByReplacingOccurrencesOfRegex:@"http(s?)://" withString:@""];
 	NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
     NSString *faviconFilePath = [[paths objectAtIndex:0] stringByAppendingPathComponent:fileName];
-	UIImage *faviconImage = [[UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:faviconURL]]] scaleImageToSize:CGSizeMake(16.0f, 16.0f)];
+	UIImage *faviconImage = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:faviconURL]]];
+	faviconImage = [UIImage imageWithData:UIImagePNGRepresentation(faviconImage)];
+	faviconImage = [faviconImage thumbnailImage:16
+							  transparentBorder:0
+								   cornerRadius:0
+						   interpolationQuality:kCGInterpolationHigh];
 	
 	if (faviconImage != NULL) {
 		//[[NSNotificationCenter defaultCenter] postNotificationName:@"BlogsRefreshNotification" object:nil];
@@ -156,7 +183,7 @@
 - (void)dataSave {
     NSError *error = nil;
     if (![[self managedObjectContext] save:&error]) {
-        NSLog(@"Unresolved Core Data Save error %@, %@", error, [error userInfo]);
+        WPFLog(@"Unresolved Core Data Save error %@, %@", error, [error userInfo]);
         exit(-1);
     }
 }
@@ -167,7 +194,8 @@
 - (NSArray *)syncedPostsWithEntityName:(NSString *)entityName {
     NSFetchRequest *request = [[NSFetchRequest alloc] init];
     [request setEntity:[NSEntityDescription entityForName:entityName inManagedObjectContext:[self managedObjectContext]]];
-    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"(remoteStatusNumber = %@) AND (postID != NULL) AND (original == NULL)", [NSNumber numberWithInt:AbstractPostRemoteStatusSync]];
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"(remoteStatusNumber = %@) AND (postID != NULL) AND (original == NULL) AND (blog.blogID = %@)",
+							  [NSNumber numberWithInt:AbstractPostRemoteStatusSync], self.blogID]; 
     [request setPredicate:predicate];
     NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"date_created_gmt" ascending:YES];
     [request setSortDescriptors:[NSArray arrayWithObject:sortDescriptor]];
@@ -189,25 +217,45 @@
 - (BOOL)syncPostsFromResults:(NSMutableArray *)posts {
     if ([posts count] == 0)
         return NO;
-
+	
     NSArray *syncedPosts = [self syncedPosts];
     NSMutableArray *postsToKeep = [NSMutableArray array];
     for (NSDictionary *postInfo in posts) {
         [postsToKeep addObject:[Post createOrReplaceFromDictionary:postInfo forBlog:self]];
     }
     for (Post *post in syncedPosts) {
-        if (![postsToKeep containsObject:post] && post.blog.blogID == self.blogID) {
-            if (post.revision) {
-                // If there is a revision, we are editing this post
-                post.remoteStatus = AbstractPostRemoteStatusLocal;
-                post.postID = nil;
-            } else {
+		
+        if (![postsToKeep containsObject:post]) {  /*&& post.blog.blogID == self.blogID*/
+			//the current stored post is not contained "as-is" on the server response
+
+            if (post.revision) { //edited post before the refresh is finished
+				//We should check if this post is already available on the blog
+				BOOL presence = NO; 
+				
+				for (Post *currentPostToKeep in postsToKeep) {
+					if([currentPostToKeep.postID isEqualToNumber:post.postID]) {
+						presence = YES;
+						break;
+					}
+				}
+				if( presence == YES ) {
+					//post is on the server (most cases), kept it unchanged
+					
+				} else {
+					//post is deleted on the server, make it local, otherwise you can't upload it anymore
+					post.remoteStatus = AbstractPostRemoteStatusLocal;
+					post.postID = nil;
+					post.permaLink = nil;
+					
+				}
+			} else {
+				//post is not on the server anymore. delete it.
                 WPLog(@"Deleting post: %@", post);                
                 [[self managedObjectContext] deleteObject:post];
             }
         }
     }
-
+	
     [self dataSave];
     return YES;
 }
@@ -273,13 +321,32 @@
     for (NSDictionary *pageInfo in pages) {
         [pagesToKeep addObject:[Page createOrReplaceFromDictionary:pageInfo forBlog:self]];
     }
+	
     for (Page *page in syncedPages) {
-        if (![pagesToKeep containsObject:page] && page.blog.blogID == self.blogID) {
-            if (page.revision) {
-                // If there is a revision, we are editing this post
-                page.remoteStatus = AbstractPostRemoteStatusLocal;
-                page.postID = nil;
-            } else {
+		if (![pagesToKeep containsObject:page]) { /*&& page.blog.blogID == self.blogID*/
+
+			if (page.revision) { //edited page before the refresh is finished
+				//We should check if this page is already available on the blog
+				BOOL presence = NO; 
+				
+				for (Page *currentPageToKeep in pagesToKeep) {
+					if([currentPageToKeep.postID isEqualToNumber:page.postID]) {
+						presence = YES;
+						break;
+					}
+				}
+				if( presence == YES ) {
+					//page is on the server (most cases), kept it unchanged
+					
+				} else {
+					//page is deleted on the server, make it local, otherwise you can't upload it anymore
+					page.remoteStatus = AbstractPostRemoteStatusLocal;
+					page.postID = nil;
+					page.permaLink = nil;
+					
+				}
+			} else {
+				//page is not on the server anymore. delete it.
                 WPLog(@"Deleting page: %@", page);
                 [[self managedObjectContext] deleteObject:page];
             }
@@ -390,7 +457,8 @@
 	NSSet *syncedComments = self.comments;
     if (syncedComments && (syncedComments.count > 0)) {
 		for (Comment *comment in syncedComments) {
-			if(![commentsToKeep containsObject:comment]) {
+			// Don't delete unpublished comments
+			if(![commentsToKeep containsObject:comment] && comment.commentID != nil) {
 				WPLog(@"Deleting Comment: %@", comment);
 				[[self managedObjectContext] deleteObject:comment];
 			}

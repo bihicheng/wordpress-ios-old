@@ -30,7 +30,7 @@ NSTimeInterval kAnimationDuration2 = 0.3f;
 @implementation ReplyToCommentViewController
 
 @synthesize commentViewController, saveButton, doneButton, comment;
-@synthesize cancelButton, label, hasChanges, textViewText, isTransitioning;
+@synthesize cancelButton, label, hasChanges, textViewText, isTransitioning, isEditing;
 
 //TODO: Make sure to give this class a connection to commentDetails and currentIndex from CommentViewController
 
@@ -51,6 +51,7 @@ NSTimeInterval kAnimationDuration2 = 0.3f;
 
 // Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
 - (void)viewDidLoad {
+    [FileLogger log:@"%@ %@", self, NSStringFromSelector(_cmd)];
 	[super viewDidLoad];
 	//foo = [[NSString alloc] initWithString: textView.text];
 		
@@ -61,6 +62,7 @@ NSTimeInterval kAnimationDuration2 = 0.3f;
 				  target:self 
 				  action:@selector(initiateSaveCommentReply:)];
 	}
+	isEditing = YES;
 	
 }
 
@@ -153,8 +155,9 @@ NSTimeInterval kAnimationDuration2 = 0.3f;
 		[self.navigationController pushViewController:garbageController animated:NO]; 
 		[self.navigationController popViewControllerAnimated:NO];
 		self.isTransitioning = NO;
-		[textView resignFirstResponder];	
+		[textView resignFirstResponder];
 	}
+	isEditing = NO;
 }
 
 - (void)setTextViewHeight:(float)height {
@@ -168,27 +171,33 @@ NSTimeInterval kAnimationDuration2 = 0.3f;
 
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
-	if (self.isTransitioning){
+	if (DeviceIsPad())
+		return YES;
+	else if (self.isTransitioning){
 		return (interfaceOrientation == UIInterfaceOrientationPortrait);
 	}
-    else
+    else if (isEditing)
         return YES;
+	
+	return NO;
 }
 
 -(void) receivedRotate: (NSNotification*) notification
 {
-	UIDeviceOrientation interfaceOrientation = [[UIDevice currentDevice] orientation];
-	if(UIInterfaceOrientationIsLandscape(interfaceOrientation)) {
-		if (DeviceIsPad())
-			[self setTextViewHeight:360];
-		else
-			[self setTextViewHeight:130];
-	}
-	else {
-		if (DeviceIsPad())
-			[self setTextViewHeight:510];
-		else
-			[self setTextViewHeight:440];
+	if (isEditing) {
+		UIDeviceOrientation interfaceOrientation = [[UIDevice currentDevice] orientation];
+		if(UIInterfaceOrientationIsLandscape(interfaceOrientation)) {
+			if (DeviceIsPad())
+				[self setTextViewHeight:353];
+			else
+				[self setTextViewHeight:106];
+		}
+		else if (UIInterfaceOrientationIsPortrait(interfaceOrientation)){
+			if (DeviceIsPad())
+				[self setTextViewHeight:504];
+			else
+				[self setTextViewHeight:200];
+		}
 	}
 }
 #pragma mark -
@@ -203,8 +212,13 @@ NSTimeInterval kAnimationDuration2 = 0.3f;
 		self.hasChanges=YES;
 	}
 	
+	self.isEditing = NO;
+	
 	//make the text view longer !!!! 
-	[self setTextViewHeight:460];
+	if (DeviceIsPad())
+		[self setTextViewHeight:576];
+	else
+		[self setTextViewHeight:416];
 	
 	if (DeviceIsPad() == NO) {
 		self.navigationItem.leftBarButtonItem =
@@ -227,6 +241,8 @@ NSTimeInterval kAnimationDuration2 = 0.3f;
 		
 		[self.navigationItem setLeftBarButtonItem:doneButton];
 	}
+	isEditing = YES;
+	[self receivedRotate:nil];
 }
 
 
@@ -330,7 +346,7 @@ NSTimeInterval kAnimationDuration2 = 0.3f;
     progressAlert = nil;
 	if(res) {
 		hasChanges = NO;
-		[commentViewController performSelectorOnMainThread:@selector(dismissEditViewController) withObject:nil waitUntilDone:YES];
+		[commentViewController performSelectorOnMainThread:@selector(closeReplyViewAndSelectTheNewComment) withObject:nil waitUntilDone:YES];
 	} else {
 		[[NSNotificationCenter defaultCenter] postNotificationName:@"CommentUploadFailed" object:@"Sorry, something went wrong during comments moderation. Please try again."];	
 	}

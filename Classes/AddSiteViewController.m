@@ -12,7 +12,7 @@
     [super viewDidLoad];
     [FlurryAPI logEvent:@"AddSite"];
     
-    UIImageView *logoView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"logo_wporg"]];
+    UIImageView *logoView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"logo_wporg.png"]];
     logoView.frame = CGRectMake(0, 0, 320, 60);
     logoView.contentMode = UIViewContentModeCenter;
     logoView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
@@ -53,10 +53,12 @@
 			self.blog.geolocationEnabled = self.geolocationEnabled;
 			[self.blog dataSave];
 
-            [self.navigationController popToRootViewControllerAnimated:YES];
+            
             if (DeviceIsPad()) {
                 [self dismissModalViewControllerAnimated:YES];
             }
+			else
+				[self.navigationController popToRootViewControllerAnimated:YES];
             [[NSNotificationCenter defaultCenter] postNotificationName:@"BlogsRefreshNotification" object:nil];
         }
     }

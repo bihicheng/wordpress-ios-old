@@ -32,7 +32,7 @@ NSTimeInterval kAnimationDuration3 = 0.3f;
 @implementation EditCommentViewController
 
 @synthesize commentViewController, saveButton, doneButton, comment;
-@synthesize cancelButton, label, hasChanges, textViewText, isTransitioning;
+@synthesize cancelButton, label, hasChanges, textViewText, isTransitioning, isEditing;
 
 /*
  // The designated initializer.  Override if you create the controller programmatically and want to perform customization that is not appropriate for viewDidLoad.
@@ -47,6 +47,7 @@ NSTimeInterval kAnimationDuration3 = 0.3f;
 
 // Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
  - (void)viewDidLoad {
+	 [FileLogger log:@"%@ %@", self, NSStringFromSelector(_cmd)];
  [super viewDidLoad];
   
  if (!saveButton) {
@@ -73,6 +74,7 @@ NSTimeInterval kAnimationDuration3 = 0.3f;
 	//foo = textView.text;//so we can compare to set hasChanges correctly
 	textViewText = [[NSString alloc] initWithString: textView.text];
 	[textView becomeFirstResponder];
+	isEditing = YES;
 }
 
 -(void) viewWillDisappear: (BOOL) animated{
@@ -129,6 +131,7 @@ NSTimeInterval kAnimationDuration3 = 0.3f;
 			[textView resignFirstResponder];
 		}
 	}
+	isEditing = NO;
 }
 
 - (void)setTextViewHeight:(float)height {
@@ -142,27 +145,34 @@ NSTimeInterval kAnimationDuration3 = 0.3f;
 
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
-	if (self.isTransitioning){
+	
+	if (DeviceIsPad())
+		return YES;
+	else if (self.isTransitioning){
 		return (interfaceOrientation == UIInterfaceOrientationPortrait);
 	}
-    else
+    else if (isEditing)
         return YES;
+	
+	return NO;
 }
 
 -(void) receivedRotate: (NSNotification*) notification
 {
-	UIDeviceOrientation interfaceOrientation = [[UIDevice currentDevice] orientation];
-	if(UIInterfaceOrientationIsLandscape(interfaceOrientation)) {
-		if (DeviceIsPad())
-			[self setTextViewHeight:360];
-		else
-			[self setTextViewHeight:130];
-	}
-	else {
-		if (DeviceIsPad())
-			[self setTextViewHeight:510];
-		else
-			[self setTextViewHeight:440];
+	if (isEditing) {
+		UIDeviceOrientation interfaceOrientation = [[UIDevice currentDevice] orientation];
+		if (UIInterfaceOrientationIsLandscape(interfaceOrientation)) {
+			if (DeviceIsPad())
+				[self setTextViewHeight:353];
+			else
+				[self setTextViewHeight:106];
+		}
+		else if (UIInterfaceOrientationIsPortrait(interfaceOrientation)){
+			if (DeviceIsPad())
+				[self setTextViewHeight:504];
+			else
+				[self setTextViewHeight:200];
+		}
 	}
 }
 
@@ -174,7 +184,13 @@ NSTimeInterval kAnimationDuration3 = 0.3f;
 	if (![textString isEqualToString:textViewText]) {
 		self.hasChanges=YES;
 	}
-	[self setTextViewHeight:440];
+	
+	self.isEditing = NO;
+	
+	if (DeviceIsPad())
+		[self setTextViewHeight:576];
+	else
+		[self setTextViewHeight:416];
 	
 	if (DeviceIsPad() == NO) {
 		self.navigationItem.leftBarButtonItem =
@@ -196,6 +212,8 @@ NSTimeInterval kAnimationDuration3 = 0.3f;
 		
 		[self.navigationItem setLeftBarButtonItem:doneButton];
 	}
+	isEditing = YES;
+	[self receivedRotate:nil]; 
 }
 
 //replace "&nbsp" with a space @"&#160;" before Apple's broken TextView handling can do so and break things
@@ -265,11 +283,6 @@ NSTimeInterval kAnimationDuration3 = 0.3f;
 - (void)initiateSaveCommentReply:(id)sender {
 	[self endTextEnteringButtonAction: sender];
 	if(hasChanges == NO) {
-		/*UIAlertView *connectionFailAlert = [[UIAlertView alloc] initWithTitle:@"Error."
-																	  message:@"please modify the comment."
-																	 delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
-        [connectionFailAlert show];
-        [connectionFailAlert release];*/
 		if (DeviceIsPad() == YES) {
 			[commentViewController performSelectorOnMainThread:@selector(cancelView:) withObject:self waitUntilDone:NO];
 		} else

@@ -1,11 +1,13 @@
 #import "PostPreviewViewController.h"
 #import "WordPressAppDelegate.h"
+#import "WPDataController.h"
+#import "WPReachability.h"
 
 @interface PostPreviewViewController (Private)
 
 - (void)addProgressIndicator;
 - (NSString *)stringReplacingNewlinesWithBR:(NSString *)surString;
-- (NSString *)buildSimplePreview;
+- (NSString *)buildSimplePreview:(NSString *)alertString;
 
 @end
 
@@ -35,6 +37,7 @@
 #pragma mark View Lifecycle Methods
 
 - (void)viewDidLoad {
+    [FileLogger log:@"%@ %@", self, NSStringFromSelector(_cmd)];
     [FlurryAPI logEvent:@"PostPreview"];
 	webView.delegate = self;
 	if (activityFooter == nil) {
@@ -51,7 +54,10 @@
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
 	[self refreshWebView];
-	[activityFooter setCenter:CGPointMake(self.view.frame.size.width/2-15, self.view.frame.size.height/2-15)];
+	if (DeviceIsPad())
+		[activityFooter setCenter:CGPointMake(self.view.center.x, self.view.center.y)];
+	else
+		[activityFooter setCenter:CGPointMake(self.view.center.x - 20, self.view.center.y - 20)];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -74,12 +80,15 @@
 }
 
 
-- (NSString *)buildSimplePreview {
+- (NSString *)buildSimplePreview:(NSString *)alertString {
 	NSString *resourcePath = [[NSBundle mainBundle] resourcePath];
 	NSString *fpath = [NSString stringWithFormat:@"%@/defaultPostTemplate.html", resourcePath];
 	NSString *str = [NSString stringWithContentsOfFile:fpath];
 	
 	if ([str length]) {
+		
+		//alert msg
+		str = [str stringByReplacingOccurrencesOfString:@"!$alert_msg$!" withString:alertString];
 		
 		//Title
 		NSString *title = postDetailViewController.apost.postTitle;
@@ -124,38 +133,74 @@
 #pragma mark -
 #pragma mark Webkit View Delegate Methods
 
-	- (void)refreshWebView {
+- (void)refreshWebView {
+	
+	BOOL edited = [self.postDetailViewController hasChanges];
+	NSString *status = postDetailViewController.apost.status;
+	
+	//draft post
+	BOOL isDraft = [self.postDetailViewController isAFreshlyCreatedDraft];
+	BOOL isPrivate = NO;
+	BOOL isPending = NO;
+	
+	if ([status isEqualToString:@"draft"])
+		isDraft = YES;
+	else if ([status isEqualToString:@"private"])
+		isPrivate = YES;
+	else if ([status isEqualToString:@"pending"])
+		isPending = YES;
+	
+	if (edited) {
+		[webView loadHTMLString:[self buildSimplePreview:@"Sorry, the post has changed, or it is not published. A simple preview is shown below."] baseURL:nil];
+	} else {
 		
-		BOOL edited = [self.postDetailViewController hasChanges];
-		NSString *status = postDetailViewController.apost.status;
+		NSString *link = postDetailViewController.apost.permaLink;
 		
-		//draft post
-		BOOL isDraft = [self.postDetailViewController isAFreshlyCreatedDraft];
-		BOOL isPrivate = NO;
-		BOOL isPending = NO;
-		
-		if ([status isEqualToString:@"draft"])
-			isDraft = YES;
-		else if ([status isEqualToString:@"private"])
-			isPrivate = YES;
-		else if ([status isEqualToString:@"pending"])
-			isPending = YES;
-		
-		if (edited || isDraft || isPending || isPrivate) {
-            [webView loadHTMLString:[self buildSimplePreview] baseURL:nil];
-			
+		if([[WPReachability sharedReachability] internetConnectionStatus] == NotReachable) {
+			[webView loadHTMLString:[self buildSimplePreview:@"Sorry, no connection to host. A simple preview is shown below."] baseURL:nil];
+		} else if (link == nil ) {
+			[webView loadHTMLString:[self buildSimplePreview:@"Sorry, the post has changed, or it is not published. A simple preview is shown below."] baseURL:nil];
 		} else {
 			
-			NSString *link = postDetailViewController.apost.permaLink;
+			/*checks if this a scheduled post*/
+			NSDate *currentGMTDate = [DateUtils currentGMTDate];
+			NSDate *postGMTDate = postDetailViewController.apost.date_created_gmt;
+			NSDate *laterDate = [currentGMTDate laterDate:postGMTDate];
 			
-			if (link == nil) {
-				[webView loadHTMLString:[self buildSimplePreview] baseURL:nil];
-			}
-			else {
+			if(isDraft || isPending || isPrivate || (laterDate == postGMTDate)) {
+				
+				NSString *wpLoginURL = postDetailViewController.apost.blog.xmlrpc; 
+				wpLoginURL = [wpLoginURL stringByReplacingOccurrencesOfRegex:@"/xmlrpc.php$" withString:@"/wp-login.php"];
+				
+				/*
+				 i have used the blogURL and worked fine. but i preferred the xmlrpc url (that in most cases is on https).
+				 
+				if(![wpLoginURL hasPrefix:@"http"])
+					wpLoginURL = [NSString stringWithFormat:@"http://%@/%@", postDetailViewController.apost.blog.url, @"wp-login.php"];
+				else 
+					wpLoginURL = [NSString stringWithFormat:@"%@/%@", postDetailViewController.apost.blog.url, @"wp-login.php"];
+				
+				*/
+				
+				NSURL *url = [NSURL URLWithString:wpLoginURL]; 
+				NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:url];
+				[req setHTTPMethod:@"POST"];
+				[req addValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+				NSString *paramDataString = [NSString stringWithFormat:@"%@=%@&%@=%@&%@=%@", 
+											 @"log", postDetailViewController.apost.blog.username,
+											 @"pwd", [[WPDataController sharedInstance] passwordForBlog:postDetailViewController.apost.blog],
+											 @"redirect_to", link];
+			
+				NSData *paramData = [paramDataString dataUsingEncoding:NSUTF8StringEncoding]; 
+				[req setHTTPBody: paramData];
+				[webView loadRequest:req];
+
+			} else {
 				[webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:link]]];
 			}
 		}
 	}
+}
 
 - (void)webViewDidStartLoad:(UIWebView *)webView {
 	[activityFooter startAnimating];
@@ -193,5 +238,4 @@
     [activityFooter release];
     [super dealloc];
 }
-
 @end

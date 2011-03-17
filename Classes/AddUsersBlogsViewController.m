@@ -15,6 +15,7 @@
 #pragma mark View lifecycle
 
 - (void)viewDidLoad {
+    [FileLogger log:@"%@ %@", self, NSStringFromSelector(_cmd)];
     [super viewDidLoad];
 
     [FlurryAPI logEvent:@"AddUsersBlogs"];
@@ -23,12 +24,12 @@
 	appDelegate = (WordPressAppDelegate *)[[UIApplication sharedApplication] delegate];
 	
 	// Setup WP logo table header
-	NSString *logoFile = @"logo_wporg";
+	NSString *logoFile = @"logo_wporg.png";
 	if(isWPcom == YES) {
 		if (DeviceIsPad())
-			logoFile = @"logo_wpcom@2x";
+			logoFile = @"logo_wpcom@2x.png";
 		else
-			logoFile = @"logo_wpcom";
+			logoFile = @"logo_wpcom.png";
 	}
 	
 	

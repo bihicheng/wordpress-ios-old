@@ -11,13 +11,14 @@
 
 @implementation MediaObjectViewController
 
-@synthesize media, mediaManager, imageView, videoPlayer, deleteButton, insertButton, cancelButton, isDeleting, isInserting, appDelegate, toolbar;
+@synthesize media, imageView, videoPlayer, deleteButton, insertButton, cancelButton, isDeleting, isInserting, appDelegate, toolbar;
 @synthesize scrollView;
 
 #pragma mark -
 #pragma mark View lifecycle
 
 - (void)viewDidLoad {
+    [FileLogger log:@"%@ %@", self, NSStringFromSelector(_cmd)];
     [super viewDidLoad];
     [FlurryAPI logEvent:@"MediaObject"];
 	appDelegate = (WordPressAppDelegate *)[[UIApplication sharedApplication] delegate];
@@ -27,8 +28,10 @@
 		self.navigationItem.title = @"Video";
 		videoPlayer = [[MPMoviePlayerController alloc] initWithContentURL:[NSURL fileURLWithPath:media.localURL]];
 		[videoPlayer prepareToPlay];
-		videoPlayer.view.frame = self.view.frame;
-		[self.view addSubview:videoPlayer.view];
+		videoPlayer.view.frame = scrollView.frame;
+		videoPlayer.view.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+		[self.view insertSubview:videoPlayer.view belowSubview:toolbar];
+		[scrollView removeFromSuperview];
 	}
 	else if((media != nil) && ([media.mediaType isEqualToString:@"image"])) {
 		self.navigationItem.title = @"Image";
@@ -100,6 +103,7 @@
     if(isDeleting == YES) {
 		switch (buttonIndex) {
 			case 0:
+				[[NSNotificationCenter defaultCenter] postNotificationName:@"ShouldRemoveMedia" object:media];
                 [media remove];
 				if(DeviceIsPad() == YES)
 					[self dismissModalViewControllerAnimated:YES];
@@ -183,7 +187,6 @@
 	[insertButton release], insertButton = nil;
 	[deleteButton release], deleteButton = nil;
 	[media release], media = nil;
-	[mediaManager release], mediaManager = nil;
 	[imageView release], imageView = nil;
 	[videoPlayer release], videoPlayer = nil;
 	[cancelButton release], cancelButton = nil;

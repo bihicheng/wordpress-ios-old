@@ -25,6 +25,7 @@
 #pragma mark View lifecycle
 
 - (void)viewDidLoad {
+    [FileLogger log:@"%@ %@", self, NSStringFromSelector(_cmd)];
     [super viewDidLoad];
 	
     [FlurryAPI logEvent:@"WPcomLogin"];
@@ -47,7 +48,7 @@
 	// Setup WPcom table header
 	CGRect headerFrame = CGRectMake(0, 0, 320, 70);
 	CGRect logoFrame = CGRectMake(40, 20, 229, 43);
-	NSString *logoFile = @"logo_wpcom";
+	NSString *logoFile = @"logo_wpcom.png";
 	if(DeviceIsPad() == YES) {
 		logoFile = @"logo_wpcom@2x.png";
 		logoFrame = CGRectMake(150, 20, 229, 43);
@@ -127,7 +128,7 @@
 		cell.accessoryType = UITableViewCellAccessoryNone;
 		
 		if ([indexPath section] == 0) {
-			CGRect textFrame = CGRectMake(110, 10, 185, 30);
+			CGRect textFrame = CGRectMake(110, 12, 185, 30);
 			if(DeviceIsPad()){
 				textFrame = CGRectMake(150, 12, 350, 42);
 			}
@@ -386,10 +387,10 @@
 		footerText = @"Sign in failed. Please try again.";
 		buttonText = @"Sign In";
 		[self performSelectorOnMainThread:@selector(refreshTable) withObject:nil waitUntilDone:NO];
+		isSigningIn = NO;
+		[self.navigationItem setHidesBackButton:NO animated:NO];
+		[self refreshTable];
 	}
-	isSigningIn = NO;
-	[self.navigationItem setHidesBackButton:NO animated:NO];
-	[self refreshTable];
 	[pool release];
 }
 

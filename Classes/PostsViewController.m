@@ -31,7 +31,7 @@
 @implementation PostsViewController
 
 @synthesize newButtonItem, postDetailViewController, postReaderViewController;
-@synthesize anyMorePosts, selectedIndexPath, drafts, mediaManager;
+@synthesize anyMorePosts, selectedIndexPath, drafts;
 @synthesize resultsController;
 @synthesize blog;
 
@@ -39,6 +39,7 @@
 #pragma mark View lifecycle
 
 - (void)viewDidLoad {
+    [FileLogger log:@"%@ %@", self, NSStringFromSelector(_cmd)];
     [super viewDidLoad];
     [FlurryAPI logEvent:@"Posts"];
 
@@ -106,6 +107,10 @@
             [self showSelectedPost];
 			[self.tableView selectRowAtIndexPath:self.selectedIndexPath animated:NO scrollPosition:UITableViewScrollPositionNone];
 			[self.tableView scrollToRowAtIndexPath:self.selectedIndexPath atScrollPosition:UITableViewScrollPositionTop animated:NO];
+		} else {
+			//There are no content yet, push an the WP logo on the right.  
+			WordPressAppDelegate *delegate = (WordPressAppDelegate*)[[UIApplication sharedApplication] delegate]; 
+			[delegate showContentDetailViewController:nil];
 		}
 	}
 }
@@ -185,22 +190,32 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     static NSString *CellIdentifier = @"PostCell";
     PostTableViewCell *cell = (PostTableViewCell *)[tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-    Post *post = [self.resultsController objectAtIndexPath:indexPath];
+    AbstractPost *apost = (AbstractPost*) [self.resultsController objectAtIndexPath:indexPath];
 
     if (cell == nil) {
         cell = [[[PostTableViewCell alloc] initWithFrame:CGRectZero reuseIdentifier:CellIdentifier] autorelease];
     }
 
-    cell.post = post;
+    cell.post = apost;
+	if (cell.post.remoteStatus == AbstractPostRemoteStatusPushing) {
+		cell.selectionStyle = UITableViewCellSelectionStyleNone;
+	} else {
+		cell.selectionStyle = UITableViewCellSelectionStyleBlue;
+	}
+
 
     return cell;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+	AbstractPost *post = [self.resultsController objectAtIndexPath:indexPath];
+	if (post.remoteStatus == AbstractPostRemoteStatusPushing) {
+		// Don't allow editing while pushing changes
+		return;
+	}
     if (DeviceIsPad()) {
         self.selectedIndexPath = indexPath;
     } else {
-        AbstractPost *post = [self.resultsController objectAtIndexPath:indexPath];
         [self editPost:post];
         [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
     }
@@ -364,6 +379,7 @@
 						//push an the W logo on the right. 
 						WordPressAppDelegate *delegate = (WordPressAppDelegate*)[[UIApplication sharedApplication] delegate];
 						[delegate showContentDetailViewController:nil];
+						self.selectedIndexPath = nil;
 					}
 				}
 			} else {
@@ -547,6 +563,7 @@
 					//FIXME: I've tried to select something but even with try/catch the app could crash
 					WordPressAppDelegate *delegate = (WordPressAppDelegate*)[[UIApplication sharedApplication] delegate];
 					[delegate showContentDetailViewController:nil];
+					self.selectedIndexPath = nil;
 				}
 			}
             break;
@@ -604,7 +621,6 @@
 
     [_refreshHeaderView release]; _refreshHeaderView = nil;
     [activityFooter release];
-	[mediaManager release];
     [postDetailViewController release];
     [newButtonItem release];
     [refreshButton release];

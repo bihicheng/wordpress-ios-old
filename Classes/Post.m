@@ -114,7 +114,10 @@
 		}
 		
 		if (geo_latitude && geo_longitude) {
-			Coordinate *c = [[Coordinate alloc] initWithCoordinate:CLLocationCoordinate2DMake([geo_latitude doubleValue], [geo_longitude doubleValue])];
+			CLLocationCoordinate2D coord;
+			coord.latitude = [geo_latitude doubleValue];
+			coord.longitude = [geo_longitude doubleValue];
+			Coordinate *c = [[Coordinate alloc] initWithCoordinate:coord];
 			self.geolocation = c;
 			self.latitudeID = geo_latitude_id;
 			self.longitudeID = geo_longitude_id;
@@ -209,7 +212,7 @@
     NSError *error = nil;
     if (![[self managedObjectContext] save:&error]) {
         // We better not crash on autosave
-        NSLog(@"[Autosave] Unresolved Core Data Save error %@, %@", error, [error userInfo]);
+        WPFLog(@"[Autosave] Unresolved Core Data Save error %@, %@", error, [error userInfo]);
         [FlurryAPI logError:@"Autosave" message:[error localizedDescription] error:error];
     }
 }
@@ -246,6 +249,10 @@
         return YES;
 
     if (![self.categories isEqual:((Post *)self.original).categories]) return YES;
+	
+	if ((self.geolocation != ((Post *)self.original).geolocation)
+		 && (![self.geolocation isEqual:((Post *)self.original).geolocation]) )
+        return YES;
 
     return NO;
 }

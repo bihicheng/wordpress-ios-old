@@ -12,13 +12,14 @@
 
 @implementation EditSiteViewController
 @synthesize password, username, url, geolocationEnabled;
-@synthesize blog, tableView;
+@synthesize blog, tableView, savingIndicator;
 @synthesize urlCell, usernameCell, passwordCell;
 
 #pragma mark -
 #pragma mark View lifecycle
 
 - (void)viewDidLoad {
+    [FileLogger log:@"%@ %@", self, NSStringFromSelector(_cmd)];
     [super viewDidLoad];
     if (blog) {
         [FlurryAPI logEvent:@"EditSite"];
@@ -264,6 +265,7 @@
 			WordPressAppDelegate *appDelegate = (WordPressAppDelegate *)[[UIApplication sharedApplication] delegate];
 			
 			if (DeviceIsPad()) {
+				helpViewController.isBlogSetup = YES;
 				[self.navigationController pushViewController:helpViewController animated:YES];
 			}
 			else
@@ -302,7 +304,7 @@
     urlToValidate = [urlToValidate stringByReplacingOccurrencesOfRegex:@"/wp-admin/?$" withString:@""]; 
     urlToValidate = [urlToValidate stringByReplacingOccurrencesOfRegex:@"/?$" withString:@""]; 
 	
-	
+    [FileLogger log:@"%@ %@ %@", self, NSStringFromSelector(_cmd), urlToValidate];
 	ASIHTTPRequest *xmlrpcRequest = [[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:urlToValidate]];
 	[xmlrpcRequest setValidatesSecureCertificate:NO]; 
 	[xmlrpcRequest setShouldPresentCredentialsBeforeChallenge:NO];
@@ -343,14 +345,15 @@
 
 - (void)checkURLWentWrong:(ASIHTTPRequest *)request {
 	NSError *error = [request error];
-	NSString *errorMessage = [error localizedDescription];
-	WPLog(@"checkURLWentWrong %@", errorMessage);
+	[FileLogger log:@"%@ %@ %@", self, NSStringFromSelector(_cmd), error];
 	[self performSelectorOnMainThread:@selector(validationDidFail:) withObject:error waitUntilDone:YES];
 }
 
 
 
 - (void)validationSuccess:(NSString *)xmlrpc {
+	[savingIndicator stopAnimating];
+	[savingIndicator setHidden:YES];
     blog.url = self.url;
     blog.xmlrpc = xmlrpc;
     blog.username = self.username;
@@ -363,8 +366,10 @@
                                error:&error];
     
     if (error) {
-        NSLog(@"Error saving password for %@", blog.url);
-    }
+		[FileLogger log:@"%@ %@ Error saving password for %@: %@", self, NSStringFromSelector(_cmd), blog.url, error];
+    } else {
+		[FileLogger log:@"%@ %@ %@", self, NSStringFromSelector(_cmd), blog.url];
+	}
 	if (DeviceIsPad())
 		[self dismissModalViewControllerAnimated:YES];
 	else
@@ -376,13 +381,22 @@
 }
 
 - (void)validationDidFail:(id)wrong {
+	[savingIndicator stopAnimating];
+	[savingIndicator setHidden:YES];
     if (wrong) {
         if ([wrong isKindOfClass:[UITableViewCell class]]) {
             ((UITableViewCell *)wrong).textLabel.textColor = WRONG_FIELD_COLOR;
         } else if ([wrong isKindOfClass:[NSError class]]) {
             NSError *error = (NSError *)wrong;
-            UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Can't log in"
-                                                                message:[error localizedDescription]
+			NSString *message;
+			if ([error code] == 403) {
+				message = @"Please update your credentials and try again.";
+			} else {
+				message = [error localizedDescription];
+			}
+
+            UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Sorry, can't log in"
+																message:message
                                                                delegate:self
                                                       cancelButtonTitle:@"Need Help?"
                                                       otherButtonTitles:@"OK", nil];
@@ -427,7 +441,19 @@
     [urlTextField resignFirstResponder];
     [usernameTextField resignFirstResponder];
     [passwordTextField resignFirstResponder];
-    
+	
+	if (savingIndicator == nil) {
+		savingIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+		[savingIndicator setFrame:CGRectMake(0,0,20,20)];
+		[savingIndicator setCenter:CGPointMake(tableView.center.x, savingIndicator.center.y)];
+		UIView *aView = [[UIView alloc] init];
+		[aView addSubview:savingIndicator];
+		
+		[self.tableView setTableFooterView:aView];
+	}
+	[savingIndicator setHidden:NO];
+	[savingIndicator startAnimating];
+
     if (blog) {
         blog.geolocationEnabled = self.geolocationEnabled;
         [blog dataSave];
@@ -476,6 +502,7 @@
     [urlTextField release]; urlTextField = nil;
     [usernameTextField release]; usernameTextField = nil;
     [passwordTextField release]; passwordTextField = nil;
+	[savingIndicator release];
     [super dealloc];
 }
 

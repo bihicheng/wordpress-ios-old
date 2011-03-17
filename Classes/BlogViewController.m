@@ -15,6 +15,7 @@
 @synthesize tabBarController, blog, selectedViewController;
 
 - (void)viewDidLoad {
+    [FileLogger log:@"%@ %@", self, NSStringFromSelector(_cmd)];
     [super viewDidLoad];
     [FlurryAPI logEvent:@"Blog"];
 
@@ -114,6 +115,8 @@
 - (void)configureCommentsTab {
 	[[NSUserDefaults standardUserDefaults] setValue:@"Comments" forKey:@"WPSelectedContentType"];
 	[commentsViewController setIndexForCurrentPost:-2];
+	//force commentViewController to nil, fixes trac #754
+	commentsViewController.commentViewController = nil;
 	self.navigationItem.rightBarButtonItem = commentsViewController.editButtonItem;
 }
 

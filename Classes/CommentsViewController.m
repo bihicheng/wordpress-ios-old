@@ -12,6 +12,7 @@
 #import "WPProgressHUD.h"
 #import "WPReachability.h"
 #import "CommentViewController.h"
+#import "BlogViewController.h"
 
 #define COMMENTS_SECTION        0
 #define NUM_SECTIONS            1
@@ -36,14 +37,13 @@
 - (void)limitToOnHold;
 - (void)doNotLimit;
 - (NSMutableArray *)commentsOnHold;
-- (void)trySelectSomething;
 - (NSDate *)lastSyncDate;
 - (BOOL)isSyncing;
 @end
 
 @implementation CommentsViewController
 
-@synthesize editButtonItem, selectedComments, commentsArray, indexForCurrentPost;
+@synthesize editButtonItem, selectedComments, commentsArray, indexForCurrentPost, lastUserSelectedCommentID;
 @synthesize selectedIndexPath;
 @synthesize commentViewController;
 @synthesize isSecondaryViewController;
@@ -62,6 +62,7 @@
     [selectedComments release];
     [editButtonItem release];
 	[selectedIndexPath release], selectedIndexPath = nil;
+	[lastUserSelectedCommentID release], lastUserSelectedCommentID = nil;
 	[commentViewController release], commentViewController = nil;
 	[_refreshHeaderView release]; _refreshHeaderView = nil;
     [super dealloc];
@@ -93,6 +94,7 @@
 #pragma mark View Lifecycle Methods
 
 - (void)viewDidLoad {
+    [FileLogger log:@"%@ %@", self, NSStringFromSelector(_cmd)];
     [super viewDidLoad];
     
     commentsDict = [[NSMutableDictionary alloc] init];
@@ -185,7 +187,7 @@
 
 - (void)setEditing:(BOOL)value {
     editing = value;
-
+	
     // Adjust comments table view height to fit toolbar (if it's visible).
     CGFloat toolbarHeight = editing ? editToolbar.bounds.size.height : 0;
     CGRect mainViewBounds = self.view.bounds;
@@ -193,18 +195,41 @@
                              mainViewBounds.origin.y,
                              mainViewBounds.size.width,
                              mainViewBounds.size.height - toolbarHeight);
-
+	
     commentsTableView.frame = rect;
-
+	
     [editToolbar setHidden:!editing];
     [deleteButton setEnabled:!editing];
     [approveButton setEnabled:!editing];
     [unapproveButton setEnabled:!editing];
     [spamButton setEnabled:!editing];
-
+	
     editButtonItem.title = editing ? @"Cancel" : @"Edit";
     
     [commentsTableView setEditing:value animated:YES];
+	
+	if(editing && selectedComments) { //if we are switching to editing mode and there were selected comments
+		if(selectedComments.count > 0) { 
+			if ([[self.resultsController fetchedObjects] count] > 0) {
+				
+				NSMutableArray *commentsToKeep = [NSMutableArray array] ;
+				for (Comment  *commentInfo in [self.resultsController fetchedObjects]) {
+					if ([selectedComments containsObject:commentInfo]) {
+						[commentsToKeep addObject:commentInfo];
+					} 					
+				}
+
+				self.selectedComments = nil;
+				self.selectedComments = commentsToKeep;
+				
+			} else {
+				[selectedComments removeAllObjects];
+			}
+		}
+		[self updateSelectedComments];
+	}
+	
+	_refreshHeaderView.hidden = value;
     [self refreshCommentsList];
 }
 
@@ -237,8 +262,8 @@
 
 - (void)refreshHandler {
 	[self setEditing:false];
-    [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
-    [self performSelectorInBackground:@selector(syncComments) withObject:nil];
+	[UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
+	[self performSelectorInBackground:@selector(syncComments) withObject:nil];
 }
 
 - (void)syncComments {
@@ -259,19 +284,45 @@
 	[_refreshHeaderView egoRefreshScrollViewDataSourceDidFinishedLoading:commentsTableView];
     if (!selectedComments) {
         selectedComments = [[NSMutableArray alloc] init];
-    } else {
+    } /* else {
         [selectedComments removeAllObjects];
-    }
-
-    [editButtonItem setEnabled:([[self.resultsController fetchedObjects] count] > 0)];
+    }*/
+	
+    [editButtonItem setEnabled:([[self.resultsController fetchedObjects] count] > 0)];	
 	[self reloadTableView];
 	
-
 	if (DeviceIsPad() == YES) {
-		if (self.selectedIndexPath && !self.isSecondaryViewController) {
-			[commentsTableView selectRowAtIndexPath:self.selectedIndexPath animated:NO scrollPosition:UITableViewScrollPositionNone];
-			[self showCommentAtIndexPath:self.selectedIndexPath];
+		
+		//we must check if the user has changed blog meanwhile
+		BOOL presence = NO;
+		WordPressAppDelegate *delegate = (WordPressAppDelegate*)[[UIApplication sharedApplication] delegate];
+		
+		UINavigationController *master = [delegate masterNavigationController];
+		UIViewController *topVC = master.topViewController;
+		if (topVC && [topVC isKindOfClass:[BlogViewController class]]) {
+			BlogViewController *tmp = (BlogViewController *)topVC;
+			if( tmp.tabBarController.selectedViewController == self)
+				presence = YES;
 		}
+		
+		/*	Another way to do that
+		 UINavigationController *master = [delegate masterNavigationController];
+		 // O : BlogsViewController
+		 //1 : BlogViewController
+		 if(master && ([master.viewControllers count] > 1) ) {
+		 UIViewController *ctrlRight = [master.viewControllers objectAtIndex:1];
+		 if([ctrlRight isKindOfClass:[BlogViewController class]]) {
+		 BlogViewController *tmp = (BlogViewController*)ctrlRight;
+		 if(tmp.tabBarController.selectedViewController == self)
+		 presence = YES;
+		 }
+		 }
+		 */
+		if(presence)
+			if (self.selectedIndexPath && !self.isSecondaryViewController) {
+				[commentsTableView selectRowAtIndexPath:self.selectedIndexPath animated:NO scrollPosition:UITableViewScrollPositionNone];
+				[self showCommentAtIndexPath:self.selectedIndexPath];
+			}
 	}
 }
 
@@ -306,7 +357,7 @@
 - (void)didModerateComments {
     [self setEditing:NO];
     [progressAlert dismissWithClickedButtonIndex:0 animated:YES];
-    [progressAlert release];    
+    [progressAlert release];
 }
 
 - (void)moderateCommentsWithSelector:(SEL)selector {
@@ -319,7 +370,7 @@
     [self performSelectorOnMainThread:@selector(didModerateComments) withObject:nil waitUntilDone:NO];
     
 	if(fails)
-		[[NSNotificationCenter defaultCenter] postNotificationName:@"CommentUploadFailed" object:@"Something went wrong during comments moderation."];
+		[[NSNotificationCenter defaultCenter] postNotificationName:@"CommentUploadFailed" object:@"Sorry, something went wrong during comment moderation. Please try again."];
 	[pool release];
 }
 
@@ -334,6 +385,7 @@
 
 - (void)markCommentsAsSpam {
     [self moderateCommentsWithSelector:@selector(spam)];
+	[self performSelectorOnMainThread:@selector(trySelectSomethingAndShowIt) withObject:nil waitUntilDone:NO];
 }
 
 - (void)unapproveComments {
@@ -382,6 +434,9 @@
         NSLog(@"sections: %@", self.resultsController.sections);
         NSLog(@"results: %@", self.resultsController.fetchedObjects);
         comment = nil;
+		//push an the WP logo on the right. 
+		WordPressAppDelegate *delegate = (WordPressAppDelegate*)[[UIApplication sharedApplication] delegate];
+		[delegate showContentDetailViewController:nil];		
         return;
     }
 	
@@ -406,7 +461,10 @@
             [selectedIndexPath retain];
             [self showCommentAtIndexPath:selectedIndexPath];
         }
-    }
+    } else {
+		if (selectedIndexPath != nil) 
+			[self showCommentAtIndexPath:selectedIndexPath];
+	}
 }
 
 #pragma mark -
@@ -487,6 +545,23 @@
         [self tableView:tableView didCheckRowAtIndexPath:indexPath];
     } else {
         self.selectedIndexPath = indexPath;
+		
+		// we should keep the reference to the last comment selected by the user
+		Comment *comment;
+		@try {
+			if(self.blog.lastCommentsSync == nil) { //first startup, comments are not there
+				comment = nil;
+			} else {
+				comment = [self.resultsController objectAtIndexPath:indexPath];
+			}
+		}
+		@catch (NSException * e) {
+			comment = nil;
+		}
+		self.lastUserSelectedCommentID = nil;
+		if(comment != nil) {
+			self.lastUserSelectedCommentID = comment.commentID; //store the latest user selection
+		}
     }
 }
 
@@ -568,7 +643,6 @@
 
     if (indexPath) {
         self.selectedIndexPath = indexPath;
-        [commentViewController showComment:[self.resultsController objectAtIndexPath:indexPath]];
      }
 }
 
@@ -587,14 +661,39 @@
 
     if (indexPath) {
         self.selectedIndexPath = indexPath;
-        [commentViewController showComment:[self.resultsController objectAtIndexPath:indexPath]];
     }
 }
 
 
 - (void)trySelectSomething {
-    if (!DeviceIsPad())
+	
+	//try to move the comments list on the last user selected comment
+	if(self.lastUserSelectedCommentID != nil) {
+		NSArray *sections = [self.resultsController sections];
+		int currentSectionIndex = 0;
+		for (currentSectionIndex = 0; currentSectionIndex < [sections count]; currentSectionIndex++) {
+			id <NSFetchedResultsSectionInfo> sectionInfo = nil;
+			sectionInfo = [sections objectAtIndex:currentSectionIndex];
+			
+			int currentCommentIndex = 0;
+			NSArray *commentsForSection = [sectionInfo objects];
+			
+			for (currentCommentIndex = 0; currentCommentIndex < [commentsForSection count]; currentCommentIndex++) {
+				Comment *cmt = [commentsForSection objectAtIndex:currentCommentIndex];
+				//NSLog(@"comment ID == %@", cmt.commentID);
+				//NSLog(@"self.comment ID == %@", self.lastUserSelectedCommentID);
+				if([cmt.commentID  compare:self.lastUserSelectedCommentID] == NSOrderedSame) { 
+					self.selectedIndexPath = [NSIndexPath indexPathForRow:currentCommentIndex inSection:currentSectionIndex];
+					[commentsTableView scrollToRowAtIndexPath:self.selectedIndexPath atScrollPosition:UITableViewScrollPositionTop animated:NO];
+				}
+			}
+		}
+	}	
+	
+	if (!DeviceIsPad())
         return;
+
+	//On ipad we should show the comments on the right side and we should highlight the comments within the comments list	
 	
     if (!self.selectedIndexPath) {
         NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:0];
@@ -607,14 +706,25 @@
         }
         @catch (NSException * e) {
             NSLog(@"Caught exception when looking for a post to select. Maybe there are no posts yet?");
+			self.selectedComments = nil;
         }
-    }
+	}
+
+	if (!self.selectedIndexPath) {
+		//nothing is selected, push an the WP logo on the right.
+		WordPressAppDelegate *delegate = (WordPressAppDelegate*)[[UIApplication sharedApplication] delegate];
+		[delegate showContentDetailViewController:nil];
+	} else {
+		[commentsTableView selectRowAtIndexPath:self.selectedIndexPath animated:NO scrollPosition:UITableViewScrollPositionNone];
+	}
+	
 }
-
-
+	
+//this is used after a comment delete
 - (void)trySelectSomethingAndShowIt{
 	if (!DeviceIsPad())
         return;
+	
 	if (!self.selectedIndexPath) {
 		[self trySelectSomething];
 	}
@@ -642,7 +752,7 @@
     WordPressAppDelegate *appDelegate = (WordPressAppDelegate*)[[UIApplication sharedApplication] delegate];
     NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] init];
     [fetchRequest setEntity:[NSEntityDescription entityForName:[self entityName] inManagedObjectContext:appDelegate.managedObjectContext]];
-    [fetchRequest setPredicate:[NSPredicate predicateWithFormat:@"(blog == %@)", self.blog]];
+    [fetchRequest setPredicate:[NSPredicate predicateWithFormat:@"(blog == %@ AND status != %@)", self.blog, @"spam"]];
     NSSortDescriptor *sortDescriptorStatus = [[NSSortDescriptor alloc] initWithKey:@"status" ascending:NO];
     NSSortDescriptor *sortDescriptorDate = [[NSSortDescriptor alloc] initWithKey:@"dateCreated" ascending:NO];
     NSArray *sortDescriptors = [[NSArray alloc] initWithObjects:sortDescriptorStatus, sortDescriptorDate, nil];
@@ -693,14 +803,14 @@
     switch (type) {
         case NSFetchedResultsChangeDelete:
             [self trySelectSomething];
-            break;
+			break;
         case NSFetchedResultsChangeInsert:
             self.selectedIndexPath = newIndexPath;
             [commentsTableView selectRowAtIndexPath:self.selectedIndexPath animated:NO scrollPosition:UITableViewScrollPositionNone];
 		case NSFetchedResultsChangeMove:
             self.selectedIndexPath = newIndexPath;
             [commentsTableView selectRowAtIndexPath:self.selectedIndexPath animated:NO scrollPosition:UITableViewScrollPositionNone];
-        default:
+		default:
             [commentsTableView selectRowAtIndexPath:self.selectedIndexPath animated:NO scrollPosition:UITableViewScrollPositionNone];
             break;
     }
@@ -722,7 +832,8 @@
 }
 
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate{
-	[_refreshHeaderView egoRefreshScrollViewDidEndDragging:scrollView];
+	if (!editing)
+		[_refreshHeaderView egoRefreshScrollViewDidEndDragging:scrollView];
 }
 
 #pragma mark -
@@ -730,6 +841,7 @@
 
 - (void)egoRefreshTableHeaderDidTriggerRefresh:(EGORefreshTableHeaderView*)view{
 	[self refreshHandler];
+	_refreshHeaderView.hidden = NO; // Just in case
 }
 
 - (BOOL)egoRefreshTableHeaderDataSourceIsLoading:(EGORefreshTableHeaderView*)view{

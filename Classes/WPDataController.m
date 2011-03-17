@@ -68,6 +68,7 @@
 }
 
 - (NSString *)guessXMLRPCForUrl:(NSString *)url {
+	[FileLogger log:@"%@ %@ %@", self, NSStringFromSelector(_cmd), url];
     if (url == nil || [url isEqualToString:@""])
         return nil;
     
@@ -98,14 +99,17 @@
             return nil;
         }
     } else {
+		[FileLogger log:@"%@ %@ -> %@", self, NSStringFromSelector(_cmd), xmlrpc];
         return xmlrpc;
     }
     
     // Normal way failed, let's see if url was already a xmlrpc endpoint
     [req setHost:[NSURL URLWithString:url]];
     result = [self executeXMLRPCRequest:req];
-    if(![result isKindOfClass:[NSError class]])
+    if(![result isKindOfClass:[NSError class]]) {
+		[FileLogger log:@"%@ %@ -> %@", self, NSStringFromSelector(_cmd), url];
         return url;
+	}
 
     // Nothing? Let's go for the RSD file
     ASIHTTPRequest *request = [[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:url]];
@@ -124,8 +128,10 @@
         if (![xmlrpc isEqualToString:rsdURL]) {
             [req setHost:[NSURL URLWithString:xmlrpc]];
             result = [self executeXMLRPCRequest:req];
-            if(![result isKindOfClass:[NSError class]])
+            if(![result isKindOfClass:[NSError class]]) {
+				[FileLogger log:@"%@ %@ -> %@", self, NSStringFromSelector(_cmd), xmlrpc];
                 return xmlrpc;
+			}
         }
         
         // No tricks, let's parse the rsd
@@ -140,15 +146,18 @@
                         xmlrpc = [[api attributeForName:@"apiLink"] stringValue];
                         [req setHost:[NSURL URLWithString:xmlrpc]];
                         result = [self executeXMLRPCRequest:req];
-                        if(![result isKindOfClass:[NSError class]])
+                        if(![result isKindOfClass:[NSError class]]) {
+							[FileLogger log:@"%@ %@ -> %@", self, NSStringFromSelector(_cmd), xmlrpc];
                             return xmlrpc;
-                        else
+                        } else {
+							[FileLogger log:@"%@ %@ -> (null)", self, NSStringFromSelector(_cmd)];
                             return nil; // Sorry, I give up. Bad URL
+						}
                     }
                 }
             }
             @catch (NSException *ex) {
-                WPLog(@"Error parsing RSD file: %@ %@", [ex name], [ex reason]);
+                WPFLog(@"Error parsing RSD file: %@ %@", [ex name], [ex reason]);
             }
         }        
     }
@@ -693,17 +702,21 @@
 }
 
 - (id)executeXMLRPCRequest:(XMLRPCRequest *)req {
+	[FileLogger log:@"%@ %@ %@ %@", self, NSStringFromSelector(_cmd), [req method], [req host]];
 	ASIHTTPRequest *request = [[ASIHTTPRequest alloc] initWithURL:[req host]];
 	[request setRequestMethod:@"POST"];
 	[request setShouldPresentCredentialsBeforeChallenge:YES];
 	[request setShouldPresentAuthenticationDialog:YES];
 	[request setUseKeychainPersistence:YES];
     [request setValidatesSecureCertificate:NO];
+	[request setTimeOutSeconds:30];
     if (retryOnTimeout) {
         [request setNumberOfTimesToRetryOnTimeout:2];
     } else {
         [request setNumberOfTimesToRetryOnTimeout:0];
     }
+	if(getenv("WPDebugXMLRPC"))
+		NSLog(@"executeXMLRPCRequest request: %@",[req source]);
     [request appendPostData:[[req source] dataUsingEncoding:NSUTF8StringEncoding]];
 	[request startSynchronous];
 	
@@ -766,6 +779,7 @@
         }
     }
     
+	[FileLogger log:@"%@ %@ %@", self, NSStringFromSelector(_cmd), err];
 	return err;
 }
 

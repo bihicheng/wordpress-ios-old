@@ -11,29 +11,36 @@
 
 @implementation HelpViewController
 
-@synthesize faqButton, forumButton, emailButton, cancel, navBar;
+@synthesize faqButton, forumButton, emailButton, cancel, navBar, isBlogSetup;
 
 
 // Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
 - (void)viewDidLoad {
+    [FileLogger log:@"%@ %@", self, NSStringFromSelector(_cmd)];
     [super viewDidLoad];
 	
 	if (![MFMailComposeViewController canSendMail])
 		[emailButton setHidden:YES]; 
 	
-	if (DeviceIsPad()) {
-		[navBar setHidden:YES];
+	if (DeviceIsPad())
 		self.navigationItem.title = @"Help";
-	}
 }
 
-/*
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+	
+	if (DeviceIsPad() && isBlogSetup)
+			[navBar setHidden:YES];
+}
+
 // Override to allow orientations other than the default portrait orientation.
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
-    // Return YES for supported orientations.
-    return (interfaceOrientation == UIInterfaceOrientationPortrait);
+    if (DeviceIsPad())
+		return YES;
+	
+	return NO;
 }
-*/
+
 
 -(void) cancel: (id)sender {
 	[self dismissModalViewControllerAnimated:YES];
@@ -54,8 +61,14 @@
 	controller.mailComposeDelegate = self;
 	NSArray *recipient = [[NSArray alloc] initWithObjects:@"support@wordpress.com", nil];
 	[controller setToRecipients: recipient];
+	[recipient release];
 	[controller setSubject:@"WordPress for iOS Help Request"];
 	[controller setMessageBody:@"Hello,\n" isHTML:NO]; 
+	if ([[NSFileManager defaultManager] fileExistsAtPath:FileLoggerPath()]) {
+		NSString *logData = [NSString stringWithContentsOfFile:FileLoggerPath()];
+		[controller addAttachmentData:[logData dataUsingEncoding:NSUTF8StringEncoding] mimeType:@"text/plain" fileName:@"wordpress.log"];
+	}
+	
 	if (controller) [self presentModalViewController:controller animated:YES];
 	[controller release];
 }

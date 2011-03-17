@@ -8,6 +8,17 @@
 
 #import "FileLogger.h"
 
+NSString *FileLoggerPath() {
+	static NSString *filePath;
+	
+	if (filePath == nil) {
+		NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+		NSString *documentsDirectory = [paths objectAtIndex:0];
+		filePath = [[documentsDirectory stringByAppendingPathComponent:@"wordpress.log"] retain];		
+	}
+	
+	return filePath;
+}
 
 @implementation FileLogger
 
@@ -18,16 +29,13 @@
 
 - (id) init {
 	if (self == [super init]) {
-		NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-		NSString *documentsDirectory = [paths objectAtIndex:0];
-		NSString *filePath = [documentsDirectory stringByAppendingPathComponent:@"migration.log"];		
 		NSFileManager *fileManager = [NSFileManager defaultManager];
-		if (![fileManager fileExistsAtPath:filePath])
-			[fileManager createFileAtPath:filePath
+		if (![fileManager fileExistsAtPath:FileLoggerPath()])
+			[fileManager createFileAtPath:FileLoggerPath()
 								 contents:nil
 							   attributes:nil];
-		logFile = [[NSFileHandle fileHandleForWritingAtPath:filePath] retain];
-		[logFile seekToEndOfFile];
+		logFile = [[NSFileHandle fileHandleForWritingAtPath:FileLoggerPath()] retain];
+//		[logFile seekToEndOfFile];
 	}
 	return self;
 }
@@ -36,12 +44,18 @@
 	[logFile synchronizeFile];
 }
 
-- (void)log:(NSString *)format, ... {
+- (void)log:(NSString *)message {
+	[logFile writeData:[[NSString stringWithFormat:@"%@ %@\n", [NSDate date], message] dataUsingEncoding:NSUTF8StringEncoding]];
+}
+
++ (void)log:(NSString *)format, ... {
 	va_list ap;
 	va_start(ap, format);
 	NSString *message = [[NSString alloc] initWithFormat:format arguments:ap];
+#if !FILELOGGER_ONLY_NSLOG_ON_DEBUG || defined(DEBUG)
 	NSLog(message);
-	[logFile writeData:[[message stringByAppendingString:@"\n"] dataUsingEncoding:NSUTF8StringEncoding]];
+#endif
+	[[FileLogger sharedInstance] log:message];
 	[message release];
 }
 

@@ -41,10 +41,15 @@
         tagsLabel.text = self.post.tags;
         categoriesLabel.text = [self.post categoriesText];
     }
-    contentView.text = self.apost.content;
+	if ((self.apost.mt_text_more != nil) && ([self.apost.mt_text_more length] > 0))
+		contentView.text = [NSString stringWithFormat:@"%@\n<!--more-->\n%@", self.apost.content, self.apost.mt_text_more];
+	else
+		contentView.text = self.apost.content;
 }
 
 - (void)viewDidLoad {
+	[FileLogger log:@"%@ %@", self, NSStringFromSelector(_cmd)];
+	[super viewDidLoad];
     [self refreshUI];
     
     UIBarButtonItem *editButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemEdit
@@ -59,10 +64,20 @@
         NSLog(@"Trying to show editor a second time: bad");
         return;
     }
+	if (self.apost.remoteStatus == AbstractPostRemoteStatusPushing) {
+		UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Can't edit just yet"
+														message:@"Sorry, you can't edit a post while it's being uploaded. Try again in a moment"
+													   delegate:nil
+											  cancelButtonTitle:@"OK"
+											  otherButtonTitles:nil];
+		[alert show];
+		[alert release];
+		return;
+	}
     EditPostViewController *postViewController;
 	[self checkForNewItem];
     AbstractPost *postRevision = [self.apost createRevision];
-    postViewController = [[EditPostViewController alloc] initWithPost:postRevision];
+    postViewController = [self getPostOrPageController: postRevision];
     postViewController.editMode = kEditPost;
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(editorDismissed:) name:@"PostEditorDismissed" object:postViewController];
     
@@ -73,6 +88,11 @@
     [self presentModalViewController:nav animated:YES];
     [postViewController release];
     [nav release];
+}
+
+-(EditPostViewController *) getPostOrPageController: (AbstractPost *) revision {
+	EditPostViewController *postViewController = [[EditPostViewController alloc] initWithPost:revision];
+	return postViewController;
 }
 
 // Subclassed in PageViewController

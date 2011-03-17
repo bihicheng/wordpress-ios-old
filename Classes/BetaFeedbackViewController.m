@@ -17,6 +17,7 @@
 
 
 - (void)viewDidLoad {
+    [FileLogger log:@"%@ %@", self, NSStringFromSelector(_cmd)];
     [super viewDidLoad];
 	
     [feedback.layer setCornerRadius:5.0f];
@@ -115,6 +116,7 @@
 		
 		[xmlrpcRequest setMethod:@"wp.newComment" withObjects:args];
 		NSNumber *result = [[WPDataController sharedInstance] executeXMLRPCRequest:xmlrpcRequest];
+		[xmlrpcRequest release];
 		if ([result isKindOfClass:[NSError class]]) {
 			//oh well
 			//NSLog(@"wpNewComment failed: %@", result);

@@ -16,6 +16,7 @@ NSTimeInterval kAnimationDuration = 0.3f;
 @synthesize editMode, apost;
 @synthesize hasSaved, isVisible, isPublishing;
 @synthesize toolbar;
+@synthesize photoButton, movieButton;
 
 - (id)initWithPost:(AbstractPost *)aPost {
     NSString *nib;
@@ -96,10 +97,18 @@ NSTimeInterval kAnimationDuration = 0.3f;
     } else if ([newView isEqual:postPreviewViewController.view]) {
 		pointerFrame.origin.x = 101;
 	} else if ([newView isEqual:postMediaViewController.view]) {
-		if (DeviceIsPad())
-			pointerFrame.origin.x = 646;
-		else
-			pointerFrame.origin.x = 198;
+		if (DeviceIsPad()) {
+			if ([postMediaViewController isDeviceSupportVideo])
+				pointerFrame.origin.x = 646;
+			else
+				pointerFrame.origin.x = 688;
+		}
+		else {
+			if ([postMediaViewController isDeviceSupportVideo])
+				pointerFrame.origin.x = 198;
+			else
+				pointerFrame.origin.x = 240;
+		}
 	}
 	tabPointer.frame = pointerFrame;
     [currentView removeFromSuperview];
@@ -180,6 +189,7 @@ NSTimeInterval kAnimationDuration = 0.3f;
 }
 
 - (void)viewDidLoad {
+    [FileLogger log:@"%@ %@", self, NSStringFromSelector(_cmd)];
     [super viewDidLoad];
     [FlurryAPI logEvent:@"EditPost"];
 
@@ -223,15 +233,20 @@ NSTimeInterval kAnimationDuration = 0.3f;
         self.view.backgroundColor = [UIColor scrollViewTexturedBackgroundColor];
     }
 	
-	float version = [[[UIDevice currentDevice] systemVersion] floatValue];
-	
-	if (version < 3.2){
+	if (![postMediaViewController isDeviceSupportVideo]){
 		//no video icon for older devices
 		NSMutableArray *toolbarItems = [NSMutableArray arrayWithArray:toolbar.items];
 		NSLog(@"toolbar items: %@", toolbarItems);
 		
-		[toolbarItems removeObjectAtIndex:4];
+		[toolbarItems removeObjectAtIndex:5];
 		[toolbar setItems:toolbarItems];
+	}
+	
+	float version = [[[UIDevice currentDevice] systemVersion] floatValue];
+	if (version < 3.2){
+		//match iOS 4 toolbar glossy black bg
+		[self.toolbar insertSubview:[[[UIImageView alloc]
+									  initWithImage:[UIImage imageNamed:@"toolbar-2g-bg.png"]] autorelease] atIndex:0];
 	}
 	
 	if (self.post && self.post.geolocation != nil && self.post.blog.geolocationEnabled) {
@@ -284,9 +299,8 @@ NSTimeInterval kAnimationDuration = 0.3f;
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation {
 	if(DeviceIsPad()) {
 		return YES;
-	}
-	else if ((toInterfaceOrientation == UIInterfaceOrientationPortrait) || (toInterfaceOrientation == UIInterfaceOrientationPortraitUpsideDown)) {
-		return YES;
+	}else if ((toInterfaceOrientation == UIInterfaceOrientationPortrait)) { 
+		return YES; 
 	}
 	else if ((toInterfaceOrientation == UIInterfaceOrientationLandscapeLeft) || (toInterfaceOrientation == UIInterfaceOrientationLandscapeRight)) {
 		if (self.interfaceOrientation != toInterfaceOrientation) {
@@ -364,8 +378,8 @@ NSTimeInterval kAnimationDuration = 0.3f;
         self.navigationItem.title = self.apost.postTitle;
     }
     self.navigationItem.backBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Back"
-                                                style:UIBarButtonItemStyleBordered target:nil action:nil];
-
+																			 style:UIBarButtonItemStyleBordered target:nil action:nil];
+	
     titleTextField.text = self.apost.postTitle;
     if (self.post) {
         // FIXME: tags should be an array/set of Tag objects
@@ -379,13 +393,13 @@ NSTimeInterval kAnimationDuration = 0.3f;
     }
     else {
         textViewPlaceHolderField.hidden = YES;
-        if ((self.apost.mt_text_more != nil) && ([self.apost.mt_text_more length] > 0)){
+        if ((self.apost.mt_text_more != nil) && ([self.apost.mt_text_more length] > 0))
 			textView.text = [NSString stringWithFormat:@"%@\n<!--more-->\n%@", self.apost.content, self.apost.mt_text_more];
-		} else	
+		else	
 			textView.text = self.apost.content;
 		
     }
-
+	
 	// workaround for odd text view behavior on iPad
 	[textView setContentOffset:CGPointZero animated:NO];
 }
@@ -881,10 +895,7 @@ NSTimeInterval kAnimationDuration = 0.3f;
         WordPressAppDelegate *delegate = (WordPressAppDelegate*)[[UIApplication sharedApplication] delegate];
         [delegate setAlertRunning:YES];
         [linkAlert release];
-    }
-	else {
-		[textView scrollRangeToVisible:textView.selectedRange];
-	}	
+    }	
 }
 
 - (void)textViewDidEndEditing:(UITextView *)aTextView {
@@ -935,6 +946,11 @@ NSTimeInterval kAnimationDuration = 0.3f;
 
 - (void)textFieldDidEndEditing:(UITextField *)textField {
     self.currentEditingTextField = nil;
+#ifdef DEBUGMODE
+	if ([textField.text isEqualToString:@"#%#"]) {
+		[NSException raise:@"FakeCrash" format:@"Nothing to worry about, textField == #%#"];
+	}
+#endif
 	
     if (textField == titleTextField) {
         self.apost.postTitle = textField.text;
@@ -1022,7 +1038,7 @@ NSTimeInterval kAnimationDuration = 0.3f;
 
 - (void)insertMediaAbove:(NSNotification *)notification {
 	Media *media = (Media *)[notification object];
-	NSString *prefix = @"<br/><br/>";
+	NSString *prefix = @"<br /><br />";
 	
 	if(self.apost.content == nil || [self.apost.content isEqualToString:@""]) {
 		self.apost.content = @"";
@@ -1032,8 +1048,8 @@ NSTimeInterval kAnimationDuration = 0.3f;
 	NSMutableString *content = [[[NSMutableString alloc] initWithString:media.html] autorelease];
 	NSRange imgHTML = [textView.text rangeOfString: content];
 	
-	NSRange imgHTMLPre = [textView.text rangeOfString:[NSString stringWithFormat:@"%@%@", @"<br/><br/>", content]]; 
- 	NSRange imgHTMLPost = [textView.text rangeOfString:[NSString stringWithFormat:@"%@%@", content, @"<br/><br/>"]]; 
+	NSRange imgHTMLPre = [textView.text rangeOfString:[NSString stringWithFormat:@"%@%@", @"<br /><br />", content]]; 
+ 	NSRange imgHTMLPost = [textView.text rangeOfString:[NSString stringWithFormat:@"%@%@", content, @"<br /><br />"]]; 
 	
 	if (imgHTMLPre.location == NSNotFound && imgHTMLPost.location == NSNotFound && imgHTML.location == NSNotFound) {
 		[content appendString:[NSString stringWithFormat:@"%@%@", prefix, self.apost.content]];
@@ -1048,7 +1064,7 @@ NSTimeInterval kAnimationDuration = 0.3f;
 		else  
 			[processedText replaceCharactersInRange:imgHTML withString:@""];  
 		 
-		[content appendString:[NSString stringWithFormat:@"<br/><br/>%@", processedText]]; 
+		[content appendString:[NSString stringWithFormat:@"<br /><br />%@", processedText]]; 
 		self.post.content = content;
 	}
     [self refreshUIForCurrentPost];
@@ -1056,7 +1072,7 @@ NSTimeInterval kAnimationDuration = 0.3f;
 
 - (void)insertMediaBelow:(NSNotification *)notification {
 	Media *media = (Media *)[notification object];
-	NSString *prefix = @"<br/><br/>";
+	NSString *prefix = @"<br /><br />";
 	
 	if(self.apost.content == nil || [self.apost.content isEqualToString:@""]) {
 		self.apost.content = @"";
@@ -1065,8 +1081,8 @@ NSTimeInterval kAnimationDuration = 0.3f;
 	
 	NSMutableString *content = [[[NSMutableString alloc] initWithString:self.apost.content] autorelease];
 	NSRange imgHTML = [content rangeOfString: media.html];
-	NSRange imgHTMLPre = [content rangeOfString:[NSString stringWithFormat:@"%@%@", @"<br/><br/>", media.html]]; 
- 	NSRange imgHTMLPost = [content rangeOfString:[NSString stringWithFormat:@"%@%@", media.html, @"<br/><br/>"]];
+	NSRange imgHTMLPre = [content rangeOfString:[NSString stringWithFormat:@"%@%@", @"<br /><br />", media.html]]; 
+ 	NSRange imgHTMLPost = [content rangeOfString:[NSString stringWithFormat:@"%@%@", media.html, @"<br /><br />"]];
 	
 	if (imgHTMLPre.location == NSNotFound && imgHTMLPost.location == NSNotFound && imgHTML.location == NSNotFound) {
 		[content appendString:[NSString stringWithFormat:@"%@%@", prefix, media.html]];
@@ -1079,7 +1095,7 @@ NSTimeInterval kAnimationDuration = 0.3f;
 			[content replaceCharactersInRange:imgHTMLPost withString:@""];
 		else  
 			[content replaceCharactersInRange:imgHTML withString:@""];
-		[content appendString:[NSString stringWithFormat:@"<br/><br/>%@", media.html]];
+		[content appendString:[NSString stringWithFormat:@"<br /><br />%@", media.html]];
 		self.apost.content = content;
 	}
     [self refreshUIForCurrentPost];
@@ -1088,8 +1104,10 @@ NSTimeInterval kAnimationDuration = 0.3f;
 - (void)removeMedia:(NSNotification *)notification {
 	//remove the html string for the media object
 	Media *media = (Media *)[notification object];
-	textView.text = [textView.text stringByReplacingOccurrencesOfString:[NSString stringWithFormat:@"<br/><br/>%@", media.html] withString:@""];
-	textView.text = [textView.text stringByReplacingOccurrencesOfString:[NSString stringWithFormat:@"%@<br/><br/>", media.html] withString:@""];
+	textView.text = [textView.text stringByReplacingOccurrencesOfString:[NSString stringWithFormat:@"<br /><br />%@", media.html] withString:@""];
+	textView.text = [textView.text stringByReplacingOccurrencesOfString:[NSString stringWithFormat:@"%@<br /><br />", media.html] withString:@""];
+	textView.text = [textView.text stringByReplacingOccurrencesOfString:media.html withString:@""];
+	self.apost.content = textView.text;
 }
 
 - (void)readBookmarksFile {

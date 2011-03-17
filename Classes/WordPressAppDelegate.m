@@ -94,11 +94,9 @@ static WordPressAppDelegate *wordPressApp = NULL;
 #pragma mark -
 #pragma mark UIApplicationDelegate Methods
 
-- (void)applicationDidFinishLaunching:(UIApplication *)application {
-	[self checkIfStatsShouldRun];
-	
+- (void)applicationDidFinishLaunching:(UIApplication *)application {	
 #ifndef DEBUG
-    #warning Need Flurry api key for distribution
+#warning Need Flurry api key for distribution
 #endif
     [FlurryAPI startSession:@"NPFZWR9J1MI9QU1ICU9H"]; // FIXME: set up real api key for distribution
 	[FlurryAPI setSessionReportsOnPauseEnabled:YES];
@@ -109,6 +107,32 @@ static WordPressAppDelegate *wordPressApp = NULL;
 	else if(getenv("NSAutoreleaseFreedObjectCheckEnabled"))
 		NSLog(@"NSAutoreleaseFreedObjectCheckEnabled enabled!");
 
+	
+	// Set current directory for WordPress app
+	NSFileManager *fileManager = [NSFileManager defaultManager];
+	NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+	NSString *currentDirectoryPath = [[paths objectAtIndex:0] stringByAppendingPathComponent:@"wordpress"];
+	
+	BOOL isDir;
+	
+	if (![fileManager fileExistsAtPath:currentDirectoryPath isDirectory:&isDir] || !isDir) {
+		[fileManager createDirectoryAtPath:currentDirectoryPath attributes:nil];
+	}
+	//FIXME: we should handle errors here:
+	/*
+	 NSError *error;
+	 BOOL success = [[NSFileManager defaultManager] createDirectoryAtPath:currentDirectoryPath withIntermediateDirectories:YES attributes:nil error:&error];
+	 if (!success) {
+	 NSLog(@"Error creating data path: %@", [error localizedDescription]);
+	 }
+	 */
+	
+	// set the current dir
+	[fileManager changeCurrentDirectoryPath:currentDirectoryPath];
+
+	[FileLogger log:@"Launching WordPress for iOS %@...", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"]];
+    [FileLogger log:@"device: %@, iOS %@", [[UIDevice currentDevice] platform], [[UIDevice currentDevice] systemVersion]];
+	
     [[WPReachability sharedReachability] setNetworkStatusNotificationsEnabled:YES];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged) name:@"kNetworkReachabilityChangedNotification" object:nil];
 
@@ -118,13 +142,15 @@ static WordPressAppDelegate *wordPressApp = NULL;
     if (!context) {
         NSLog(@"\nCould not create *context for self");
     }
+	// Stats use core data, so run them after initialization
+	[self checkIfStatsShouldRun];
 	
 	BlogsViewController *blogsViewController = [[BlogsViewController alloc] initWithStyle:UITableViewStylePlain];
 	crashReportView = [[CrashReportViewController alloc] initWithNibName:@"CrashReportView" bundle:nil];
 	
 	//BETA FEEDBACK BAR, COMMENT THIS OUT BEFORE RELEASE
-	BetaUIWindow *betaWindow = [[BetaUIWindow alloc] initWithFrame:CGRectZero];
-	betaWindow.hidden = NO;
+	//BetaUIWindow *betaWindow = [[BetaUIWindow alloc] initWithFrame:CGRectZero];
+	//betaWindow.hidden = NO;
 	//BETA FEEDBACK BAR
 	
 	if(DeviceIsPad() == NO)
@@ -197,10 +223,10 @@ static WordPressAppDelegate *wordPressApp = NULL;
 	// Enable the Crash Reporter
 	if (![crashReporter enableCrashReporterAndReturnError: &error])
 		NSLog(@"Warning: Could not enable crash reporter: %@", error);
-
+	
     defaultExceptionHandler = NSGetUncaughtExceptionHandler();
 	NSSetUncaughtExceptionHandler(&uncaughtExceptionHandler);
-
+	
 	[blogsViewController release];
 	[window makeKeyAndVisible];
 	
@@ -253,6 +279,7 @@ static WordPressAppDelegate *wordPressApp = NULL;
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application {
+    [FileLogger log:@"%@ %@", self, NSStringFromSelector(_cmd)];
     [self setAppBadge];
 	
 	if (DeviceIsPad()) {
@@ -264,6 +291,7 @@ static WordPressAppDelegate *wordPressApp = NULL;
 }
 
 - (void)applicationDidEnterBackground:(UIApplication *)application {
+    [FileLogger log:@"%@ %@", self, NSStringFromSelector(_cmd)];
     [self applicationWillTerminate:application];
 }
 
@@ -371,7 +399,7 @@ static WordPressAppDelegate *wordPressApp = NULL;
 		}
 		
 		if (![self.managedObjectContext save:&error]) {
-			NSLog(@"Unresolved Core Data Save error %@, %@", error, [error userInfo]);
+			WPFLog(@"Unresolved Core Data Save error %@, %@", error, [error userInfo]);
 			exit(-1);
 		}
 		
@@ -536,6 +564,7 @@ static WordPressAppDelegate *wordPressApp = NULL;
 				WPFLog(@"Error saving blogs-only migration: %@", error);
 			}
 			[destMOC release];
+			[fileManager removeItemAtPath:blogsArchiveFilePath error:&error];
 		}
 	}
 	[[FileLogger sharedInstance] flush];
@@ -631,7 +660,7 @@ static WordPressAppDelegate *wordPressApp = NULL;
 	if (![defaults objectForKey:@"statsDate"]){
 		NSDate *theDate = [NSDate date];
 		[defaults setObject:theDate forKey:@"statsDate"];
-		[self runStats];
+		[self performSelectorInBackground:@selector(runStats) withObject:nil];
 	}else{
 		//if statsDate existed, check if it's 7 days since last stats run, if it is > 7 days, run stats
 		NSDate *statsDate = [defaults objectForKey:@"statsDate"];
@@ -640,12 +669,14 @@ static WordPressAppDelegate *wordPressApp = NULL;
 		NSTimeInterval statsInterval = 7 * 24 * 60 * 60; //number of seconds in 30 days
 		if (difference > statsInterval) //if it's been more than 7 days since last stats run
 		{
-			[self runStats];
+			[self performSelectorInBackground:@selector(runStats) withObject:nil];
 		}
 	}
 }
 
 - (void)runStats {
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
 	//generate and post the stats data
 	/*
 	 - device_uuid – A unique identifier to the iPhone/iPod that the app is installed on.
@@ -702,6 +733,8 @@ static WordPressAppDelegate *wordPressApp = NULL;
 	if(conn){
 		// This is just to keep Analyzer from complaining.
 	}
+	
+	[pool release];
 }
 
 #pragma mark Push Notification delegate
@@ -820,11 +853,18 @@ static WordPressAppDelegate *wordPressApp = NULL;
 			HelpViewController *helpViewController = [[HelpViewController alloc] init];
 			WordPressAppDelegate *appDelegate = (WordPressAppDelegate *)[[UIApplication sharedApplication] delegate];
 			
-			if (DeviceIsPad()) {
+			if (DeviceIsPad() && self.splitViewController.modalViewController) {
 				[self.navigationController pushViewController:helpViewController animated:YES];
 			}
-			else
-				[appDelegate.navigationController presentModalViewController:helpViewController animated:YES];
+			else {
+				if (DeviceIsPad()) {
+					helpViewController.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
+					helpViewController.modalPresentationStyle = UIModalPresentationFormSheet;
+					[splitViewController presentModalViewController:helpViewController animated:YES];
+				}
+				else
+					[appDelegate.navigationController presentModalViewController:helpViewController animated:YES];
+			}
 			
 			[helpViewController release];
 			break;

@@ -7,6 +7,7 @@
 #pragma mark View lifecycle
 
 - (void)viewDidLoad {
+    [FileLogger log:@"%@ %@", self, NSStringFromSelector(_cmd)];
 	appDelegate = (WordPressAppDelegate *)[[UIApplication sharedApplication] delegate];
     [FlurryAPI logEvent:@"Blogs"];
 	
@@ -138,6 +139,10 @@
     return cell;
 }
 
+-(NSString *)tableView:(UITableView*)tableView titleForDeleteConfirmationButtonForRowAtIndexPath:(NSIndexPath *)indexPath {
+	return @"Remove";
+}
+
 - (void)tableView:(UITableView *)atableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if ([self.tableView cellForRowAtIndexPath:indexPath].editing) {
         Blog *blog = [resultsController objectAtIndexPath:indexPath];
@@ -180,13 +185,15 @@
 		Blog *blog = [resultsController objectAtIndexPath:indexPath];
 		if([self canChangeBlog:blog]){
 			[tableView beginUpdates];
+
+			[blog removeFavicon];
 			
 			[appDelegate.managedObjectContext deleteObject:blog];
 			
 			[tableView endUpdates];
 			NSError *error = nil;
 			if (![appDelegate.managedObjectContext save:&error]) {
-				NSLog(@"Unresolved Core Data Save error %@, %@", error, [error userInfo]);
+				WPFLog(@"Unresolved Core Data Save error %@, %@", error, [error userInfo]);
 				exit(-1);
 			}
 		} else {
@@ -229,20 +236,34 @@
 	//we should re-check  isSyncingPosts, isSyncingPages, isSyncingComments;
 	if(blog.isSyncingPosts || blog.isSyncingPages || blog.isSyncingComments)
 		return NO;
-		
+	
+	BOOL canDelete = YES;
+	
 	NSSet *posts = blog.posts;
-	if (posts && (posts.count > 0)) 
+	if (posts && (posts.count > 0)) { 
 		for (AbstractPost *post in posts) {
+			if(!canDelete) break;
+			
+			//check the post status
 			if(post.remoteStatus = AbstractPostRemoteStatusPushing)
-				return NO;
+				canDelete = NO;
+			
+			//check for media file
+			NSSet *mediaFiles = post.media;
+			for (Media *media in mediaFiles) {
+				if(!canDelete) break;
+				if(media.remoteStatus == MediaRemoteStatusPushing) 
+					canDelete = NO;
+			}
+			mediaFiles = nil;
 		}
+	}
 	posts = nil;
-
 	
 	if(blog.isSyncingPosts || blog.isSyncingPages || blog.isSyncingComments)
-		return NO;
+		canDelete = NO;
 	
-	return YES;
+	return canDelete;
 }
 
 
@@ -277,24 +298,6 @@
     [appDelegate setCurrentBlog:blog];
 	[self.navigationController pushViewController:blogViewController animated:animated];
 	[blogViewController release];
-}
-
-- (void)deleteBlog:(NSIndexPath *)indexPath {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];	
-	[self performSelectorOnMainThread:@selector(didDeleteBlogSuccessfully:) withObject:indexPath waitUntilDone:NO];
-	[pool release];
-}
-
-- (void)didDeleteBlogSuccessfully:(NSIndexPath *)indexPath {
-	[[NSNotificationCenter defaultCenter] postNotificationName:@"BlogsEditedNotification" object:nil];
-	if ([Blog countWithContext:appDelegate.managedObjectContext] == 0) {
-		self.navigationItem.leftBarButtonItem = nil;
-		[self.tableView setEditing:NO animated:YES];
-	}
-	
-	//try to select something on iPad
-	
-	
 }
 
 - (void)motionEnded:(UIEventSubtype)motion withEvent:(UIEvent *)event {

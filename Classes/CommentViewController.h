@@ -12,12 +12,10 @@
 #import "CommentsViewController.h"
 #import "Comment.h"
 
-@interface CommentViewController : UIViewController <UIScrollViewDelegate, UIActionSheetDelegate, MFMailComposeViewControllerDelegate> {
+@interface CommentViewController : UIViewController <UIActionSheetDelegate, MFMailComposeViewControllerDelegate, UIWebViewDelegate> {
 
 	CommentsViewController *commentsViewController;
 	EditCommentViewController *editCommentViewController;
-	
-	IBOutlet UIScrollView *scrollView;
     
     IBOutlet GravatarImageView *gravatarImageView;
     IBOutlet UILabel *commentAuthorLabel;
@@ -25,7 +23,7 @@
 	IBOutlet UIButton *commentAuthorEmailButton;
     IBOutlet UILabel *commentPostTitleLabel;
     IBOutlet UILabel *commentDateLabel;
-    IBOutlet UILabel *commentBodyLabel;
+    IBOutlet UIWebView *commentBodyWebView;
 	
 	IBOutlet UIView *labelHolder;
 	IBOutlet UILabel *pendingLabel;
@@ -63,12 +61,13 @@
 - (void)segmentAction:(id)sender;
 - (void)showComment:(Comment *)comment;
 - (void)dismissEditViewController;
+- (void) closeReplyViewAndSelectTheNewComment;
+- (void)cancelView:(id)sender;
 
 - (void)deleteComment:(id)sender;
 - (void)approveComment:(id)sender;
 - (void)unApproveComment:(id)sender;
 - (void)spamComment:(id)sender;
-- (void)cancelView:(id)sender;
 - (void)addOrRemoveSegmentedControl;
 
 @property (nonatomic, retain) ReplyToCommentViewController *replyToCommentViewController;

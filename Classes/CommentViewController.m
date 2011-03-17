@@ -20,7 +20,6 @@
 
 @interface CommentViewController (Private)
 
-- (void)resizeCommentBodyLabel;
 - (BOOL)isConnectedToHost;
 - (BOOL)isApprove;
 - (void)moderateCommentWithSelector:(SEL)selector;
@@ -59,6 +58,9 @@
 	[commentsViewController release];
 	[commentAuthorUrlButton release];
 	[commentAuthorEmailButton release];
+	commentBodyWebView.delegate = nil;
+    [commentBodyWebView stopLoading];
+    [commentBodyWebView release];
     [super dealloc];
 }
 
@@ -76,6 +78,7 @@
 #pragma mark View Lifecycle
 
 - (void)viewDidLoad {
+    [FileLogger log:@"%@ %@", self, NSStringFromSelector(_cmd)];
 	
     segmentedControl = [[UISegmentedControl alloc] initWithItems:
                         [NSArray arrayWithObjects:
@@ -94,6 +97,11 @@
 	
 	self.navigationItem.title = @"Comment";
 	
+	commentBodyWebView.backgroundColor = [UIColor whiteColor];
+	//hide the shadow for the UIWebView, nicked from stackoverflow.com/questions/1074320/remove-uiwebview-shadow/
+	for(UIView *wview in [[[commentBodyWebView subviews] objectAtIndex:0] subviews]) { 
+		if([wview isKindOfClass:[UIImageView class]]) { wview.hidden = YES; } 
+	}
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged) name:@"kNetworkReachabilityChangedNotification" object:nil];
 }
@@ -111,18 +119,15 @@
 }
 
 - (void)reachabilityChanged {
-    connectionStatus = ([[WPReachability sharedReachability] remoteHostStatus] != NotReachable);
+    connectionStatus = ([[WPReachability sharedReachability] internetConnectionStatus] != NotReachable);
     UIColor *textColor = connectionStatus == YES ? [UIColor blackColor] : [UIColor grayColor];
 
     commentAuthorLabel.textColor = textColor;
     commentPostTitleLabel.textColor = textColor;
     commentDateLabel.textColor = textColor;
-    commentBodyLabel.textColor = textColor;
 }
 
 - (void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation {
-    //[self resizeCommentBodyLabel];
-    //[super didRotateFromInterfaceOrientation:fromInterfaceOrientation];
 	[self addOrRemoveSegmentedControl];
 }
 
@@ -276,25 +281,38 @@
 	}
 	else if (DeviceIsPad() == YES) {
 		[self dismissModalViewControllerAnimated:YES];
+		
 	}
+}
+
+
+- (void) closeReplyViewAndSelectTheNewComment {
+	[self dismissEditViewController];
+	[self.commentsViewController trySelectSomething];
 }
 
 - (void)cancelView:(id)sender {
 	
 	//there are no changes
 	if (!replyToCommentViewController.hasChanges && !editCommentViewController.hasChanges) {
-		if(sender == replyToCommentViewController) //delete the empty comment 
-			[replyToCommentViewController.comment remove];
-		
 		[self dismissEditViewController];
+		
+		if(sender == replyToCommentViewController) {
+			commentsViewController.selectedIndexPath = nil; //the selectedIndex path is on the reply comment
+			
+			[replyToCommentViewController.comment remove]; //delete the empty comment
+			
+			if (DeviceIsPad() == YES)  //an half-patch for #790: sometimes the modal view is not disposed when click on cancel. 
+				[self dismissModalViewControllerAnimated:YES]; 		
+		} 
 		return;
 	}
 	
-		
+	
 	UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:@"You have unsaved changes."
-											   delegate:self cancelButtonTitle:@"Cancel" 
+															 delegate:self cancelButtonTitle:@"Cancel" 
 											   destructiveButtonTitle:@"Discard"
-											   otherButtonTitles:nil];
+													otherButtonTitles:nil];
     
 	if (replyToCommentViewController.hasChanges)
 		actionSheet.tag = 401;
@@ -327,7 +345,6 @@
 									 initWithNibName:@"EditCommentViewController" 
 									 bundle:nil]autorelease];
 	editCommentViewController.commentViewController = self;
-	//replyToCommentViewController.commentsViewController = self.commentsViewController;
 	editCommentViewController.comment = self.comment;
 	editCommentViewController.title = @"Edit Comment";
 	
@@ -422,7 +439,7 @@
 }
 
 - (BOOL)isConnectedToHost {
-    if (![[WPReachability sharedReachability] remoteHostStatus] != NotReachable) {
+    if (![[WPReachability sharedReachability] internetConnectionStatus] != NotReachable) {
         UIAlertView *connectionFailAlert = [[UIAlertView alloc] initWithTitle:@"No connection to host."
                                             message:@"Operation is not supported now."
                                             delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
@@ -454,7 +471,7 @@
     [progressAlert release];
 		
 	if(fails)
-		[[NSNotificationCenter defaultCenter] postNotificationName:@"CommentUploadFailed" object:@"Something went wrong during comments moderation."];	
+		[[NSNotificationCenter defaultCenter] postNotificationName:@"CommentUploadFailed" object:@"Sorry, something went wrong during comment moderation. Please try again."];	
     else {
 		 [self.navigationController popViewControllerAnimated:YES];
 	}
@@ -474,34 +491,12 @@
 
 - (void)markThisCommentAsSpam {
     [self moderateCommentWithSelector:@selector(spam)];
+	if (DeviceIsPad() == YES)
+		[self.commentsViewController performSelectorOnMainThread:@selector(trySelectSomethingAndShowIt) withObject:nil waitUntilDone:NO];
 }
 
 - (void)unapproveThisComment {
     [self moderateCommentWithSelector:@selector(unapprove)];
-}
-
-- (void)resizeCommentBodyLabel {  //:(BOOL)wasLastPending {
-	
-	//if pending label will be shown, scrollView.contentSize has to reflect the extra pixels taken by the pending label
-	if ([self.comment.status isEqualToString:@"hold"]){ 
-		float pendingLabelHeight = pendingLabelHolder.frame.size.height;
-		CGSize size = [commentBodyLabel.text sizeWithFont:commentBodyLabel.font
-										constrainedToSize:CGSizeMake(self.view.frame.size.width - COMMENT_BODY_PADDING, COMMENT_BODY_MAX_HEIGHT)
-											lineBreakMode:commentBodyLabel.lineBreakMode];
-		//scrollView.contentSize = CGSizeMake(size.width, COMMENT_BODY_TOP + 45.0f + size.height);
-		scrollView.contentSize = CGSizeMake(size.width, COMMENT_BODY_TOP + pendingLabelHeight + COMMENT_BODY_PADDING + size.height);
-		commentBodyLabel.frame = CGRectMake(commentBodyLabel.frame.origin.x, COMMENT_BODY_TOP, size.width, size.height);
-		
-		
-	}else{
-
-    CGSize size = [commentBodyLabel.text sizeWithFont:commentBodyLabel.font
-                    constrainedToSize:CGSizeMake(self.view.frame.size.width - COMMENT_BODY_PADDING, COMMENT_BODY_MAX_HEIGHT)
-                        lineBreakMode:commentBodyLabel.lineBreakMode];
-    scrollView.contentSize = CGSizeMake(size.width, COMMENT_BODY_TOP + size.height);
-	//scrollView.contentSize = CGSizeMake(size.width, commentBodyLabel.frame.origin.y + size.height);
-    commentBodyLabel.frame = CGRectMake(commentBodyLabel.frame.origin.x, COMMENT_BODY_TOP, size.width, size.height);
-	}
 }
 
 #pragma mark resize top UIView
@@ -516,29 +511,9 @@
     CGRect rect;
 
 	float pendingLabelHeight = pendingLabelHolder.frame.size.height;
-    //int pendingLabelOffset = 0;
-    
-    //if (isPending) {
-//        pendingLabelOffset = 100;
-//		UILabel *myLabel2 = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 320, 40)];
-//		myLabel2.text = @"only Xcode";
-//		myLabel2.textAlignment = UITextAlignmentCenter;
-//		myLabel2.textColor = [UIColor yellowColor];
-//		myLabel2.shadowColor = [UIColor whiteColor];
-//		myLabel2.shadowOffset = CGSizeMake(1,1);
-//		myLabel2.font = [UIFont fontWithName:@"Zapfino" size:20];
-//		myLabel2.backgroundColor = [UIColor greenColor];
-	
-		pendingLabelHolder.backgroundColor = PENDING_COMMENT_TABLE_VIEW_CELL_BACKGROUND_COLOR;
+    pendingLabelHolder.backgroundColor = PENDING_COMMENT_TABLE_VIEW_CELL_BACKGROUND_COLOR;
 
-		[labelHolder addSubview:pendingLabelHolder];
-		//[labelHolder sizeToFit];
-		
-		//[self.contentView addSubview:checkButton];
-        //checkButton.alpha = 1;
-        //checkButton.enabled = YES;
-        //self.accessoryType = UITableViewCellAccessoryNone;
-    
+	[labelHolder addSubview:pendingLabelHolder];
     
 	rect = pendingLabelHolder.frame;
 	rect.size.width = [pendingLabelHolder superview].frame.size.width;
@@ -568,9 +543,10 @@
     rect.origin.y += pendingLabelHeight;
     commentDateLabel.frame = rect;
 	
-	rect = commentBodyLabel.frame;
+	rect = commentBodyWebView.frame;
     rect.origin.y += pendingLabelHeight;
-    commentBodyLabel.frame = rect;
+	rect.size.height -= pendingLabelHeight;
+    commentBodyWebView.frame = rect;
 	
 	[labelHolder sizeToFit];
 	
@@ -590,28 +566,28 @@
 		
 		rect = commentAuthorLabel.frame;
 		rect.origin.y -= pendingLabelHeight;
-		//rect.size.width = OTHER_LABEL_WIDTH - buttonOffset;
 		commentAuthorLabel.frame = rect;
 		
 		rect = commentAuthorUrlButton.frame;
 		rect.origin.y -= pendingLabelHeight;
-		//rect.size.width = OTHER_LABEL_WIDTH - buttonOffset;
 		commentAuthorUrlButton.frame = rect;
 		
 		rect = commentAuthorEmailButton.frame;
 		rect.origin.y -= pendingLabelHeight;
-		//rect.size.width = OTHER_LABEL_WIDTH - buttonOffset;
 		commentAuthorEmailButton.frame = rect;
 		
 		rect = commentPostTitleLabel.frame;
 		rect.origin.y -= pendingLabelHeight;
-		//rect.size.width = COMMENT_LABEL_WIDTH - buttonOffset;
 		commentPostTitleLabel.frame = rect;
 		
 		rect = commentDateLabel.frame;
 		rect.origin.y -= pendingLabelHeight;
-		//rect.size.width = COMMENT_LABEL_WIDTH - buttonOffset;
 		commentDateLabel.frame = rect;
+		
+		rect = commentBodyWebView.frame;
+		rect.origin.y -= pendingLabelHeight;
+		rect.size.height += pendingLabelHeight;
+		commentBodyWebView.frame = rect;
 	}
 }
 
@@ -644,29 +620,22 @@
 		commentDateLabel.text = [@"" stringByAppendingString:[dateFormatter stringFromDate:comment.dateCreated]];
 	else
 		commentDateLabel.text = @"";
-	commentBodyLabel.text = [comment.content trim];
-    
-    [self resizeCommentBodyLabel];
+	
+	NSString *htmlString;
+	if (comment.content == nil)
+		htmlString = [NSString stringWithFormat:@"<html><head></head><body><p>%@</p></body></html>", @"<br />"];
+	else
+		htmlString = [NSString stringWithFormat:@"<html><head><script> document.ontouchmove = function(event) { if (document.body.scrollHeight == document.body.clientHeight) event.preventDefault(); } </script><style type='text/css'>* { margin:0; padding:0 5px 0 0; } p { color:black; font-family:Helvetica; font-size:16px; } a { color:#21759b; text-decoration:none; }</style></head><body><p>%@</p></body></html>", [[comment.content trim] stringByReplacingOccurrencesOfString:@"\n" withString:@"<br />"]];
+	commentBodyWebView.delegate = self;
+	[commentBodyWebView loadHTMLString:htmlString baseURL:nil];
 
     if ([comment.status isEqualToString:@"hold"] && ![pendingLabelHolder superview]) {
-        //[approveAndUnapproveButtonBar setHidden:NO];
-        //[deleteButtonBar setHidden:YES];
 		[self insertPendingLabel];
-		//[self resizeCommentBodyLabel];//:wasLastCommentPending];
 		[approveAndUnapproveButtonBar setHidden:YES];
 		[deleteButtonBar setHidden:NO];
 		
-	} else if ([comment.status isEqualToString:@"hold"] && [pendingLabelHolder superview]) {
-		//[self resizeCommentBodyLabel];
-		CGRect rect;
-		rect = commentBodyLabel.frame;
-		rect.origin.y += pendingLabelHolder.frame.size.height;
-		commentBodyLabel.frame = rect;
-	} else {
-        //[approveAndUnapproveButtonBar setHidden:YES];
-        //[deleteButtonBar setHidden:NO];
+	} else if (![comment.status isEqualToString:@"hold"]){
 		[self removePendingLabel];
-		//[self resizeCommentBodyLabel];//:wasLastCommentPending];
 		[approveAndUnapproveButtonBar setHidden:YES];
 		[deleteButtonBar setHidden:NO];
 
@@ -708,6 +677,14 @@
 	}	
 	else
 		self.navigationItem.rightBarButtonItem = segmentBarItem;
+}
+
+-(BOOL) webView:(UIWebView *)inWeb shouldStartLoadWithRequest:(NSURLRequest *)inRequest navigationType:(UIWebViewNavigationType)inType {
+	if (inType == UIWebViewNavigationTypeLinkClicked) {
+		[[UIApplication sharedApplication] openURL:[inRequest URL]];
+		return NO;
+	}
+	return YES;
 }
 
 @end
