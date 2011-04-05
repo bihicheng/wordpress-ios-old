@@ -29,6 +29,10 @@
     IBOutlet UIBarButtonItem *deleteButton;
     BOOL editing;
 
+    IBOutlet UIView* moderationSwipeView;
+    UITableViewCell* moderationSwipeCell;
+    UISwipeGestureRecognizerDirection moderationSwipeDirection;
+
     NSMutableArray *commentsArray;
     NSMutableDictionary *commentsDict;
     NSMutableArray *selectedComments;
@@ -56,6 +60,9 @@
 @property (nonatomic, assign) BOOL isSecondaryViewController;
 @property (nonatomic, retain) NSFetchedResultsController *resultsController;
 @property (nonatomic, retain) Blog *blog;
+@property (nonatomic, retain) IBOutlet UIView* moderationSwipeView;
+@property (nonatomic, retain) UITableViewCell* moderationSwipeCell;
+@property (nonatomic) UISwipeGestureRecognizerDirection moderationSwipeDirection;
 
 - (IBAction)deleteSelectedComments:(id)sender;
 - (IBAction)approveSelectedComments:(id)sender;
