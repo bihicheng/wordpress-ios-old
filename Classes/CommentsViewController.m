@@ -619,6 +619,8 @@
 {
   if (recognizer && recognizer.state == UIGestureRecognizerStateEnded)
   {
+    if (animatingRemovalOfModerationSwipeView) return;
+    
     CGPoint location = [recognizer locationInView:commentsTableView];
     NSIndexPath* indexPath = [commentsTableView indexPathForRowAtPoint:location];
     CommentTableViewCell* cell = (CommentTableViewCell *)[commentsTableView cellForRowAtIndexPath:indexPath];
@@ -672,6 +674,7 @@
   
   if (animated)
   {
+    animatingRemovalOfModerationSwipeView = YES;
     [UIView beginAnimations:nil context:nil];
     [UIView setAnimationDuration:0.4];
     if (moderationSwipeDirection == UISwipeGestureRecognizerDirectionRight)
@@ -745,6 +748,7 @@
 
 - (void)animationDidStopThree:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context
 {
+  animatingRemovalOfModerationSwipeView = NO;
   self.moderationSwipeCell = nil;
   [moderationSwipeView removeFromSuperview];
 }

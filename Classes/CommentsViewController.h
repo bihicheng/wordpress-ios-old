@@ -32,6 +32,7 @@
     IBOutlet UIView* moderationSwipeView;
     UITableViewCell* moderationSwipeCell;
     UISwipeGestureRecognizerDirection moderationSwipeDirection;
+    BOOL animatingRemovalOfModerationSwipeView;
 
     NSMutableArray *commentsArray;
     NSMutableDictionary *commentsDict;
