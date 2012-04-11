@@ -104,7 +104,7 @@
 		str = [str stringByReplacingOccurrencesOfString:@"!$text$!" withString:desc];
 		
 		//Tags
-		NSString *tags = postDetailViewController.post.tags;
+		NSString *tags = postDetailViewController.post.tagsText;
 		tags = (tags == nil ? @"" : tags);
 		tags = [NSString stringWithFormat:NSLocalizedString(@"Tags: %@", @""), tags]; //desc = [NSString stringWithFormat:@"%@ \n <p>Tags: %@</p><br>", desc, tags];
 		str = [str stringByReplacingOccurrencesOfString:@"!$mt_keywords$!" withString:tags];

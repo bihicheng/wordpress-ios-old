@@ -120,7 +120,6 @@
     }
     self.status         = [postInfo objectForKey:@"post_status"];
     self.password       = [postInfo objectForKey:@"wp_password"];
-    self.tags           = [postInfo objectForKey:@"mt_keywords"];
 	self.permaLink      = [postInfo objectForKey:@"permaLink"];
 	self.mt_excerpt		= [postInfo objectForKey:@"mt_excerpt"];
 	self.mt_text_more	= [postInfo objectForKey:@"mt_text_more"];
@@ -133,6 +132,11 @@
 	self.postFormat		= [postInfo objectForKey:@"wp_post_format"];
 	
     self.remoteStatus   = AbstractPostRemoteStatusSync;
+    if ([postInfo objectForKey:@"mt_keywords"]) {
+        NSString *tagNames = [postInfo objectForKey:@"mt_keywords"];
+        NSArray *tags = [tagNames componentsSeparatedByString:@", "];
+        [self setTagsFromNames:tags];
+    }
     if ([postInfo objectForKey:@"categories"]) {
         [self setCategoriesFromNames:[postInfo objectForKey:@"categories"]];
     }
@@ -205,12 +209,43 @@
 	}
 }
 
+- (NSString *)tagsText {
+    return [[[self.tags valueForKey:@"name"] allObjects] componentsJoinedByString:@", "];
+}
+
+- (void)setTagsFromNames:(NSArray *)tagNames {
+    [self.tags removeAllObjects];
+    NSMutableSet *tags = nil;
+    
+    for (NSString *tagName in tagNames) {
+        NSSet *results = [self.blog.tags filteredSetUsingPredicate:[NSPredicate predicateWithFormat:@"name like %@", tagName]];
+        if (results == nil || results.count == 0) {
+            // TODO: move this to +[Tag createWithName:]
+            Tag *tag = [[Tag alloc] initWithEntity:[NSEntityDescription entityForName:@"Tag"
+                                                               inManagedObjectContext:self.blog.managedObjectContext]
+                    insertIntoManagedObjectContext:self.blog.managedObjectContext];
+            tag.name = tagName;
+            tag.count = [NSNumber numberWithInt:1];
+            results = [NSSet setWithObject:tag];
+        }
+        if (results && (results.count > 0)) {
+			if(tags == nil) {
+				tags = [NSMutableSet setWithSet:results];
+			} else {
+				[tags unionSet:results];
+			}
+		}
+    }
+    
+    if (tags && (tags.count > 0)) {
+        self.tags = tags;
+    }
+}
+
 - (BOOL)hasChanges {
     if ([super hasChanges]) return YES;
 
-    if ((self.tags != ((Post *)self.original).tags)
-        && (![self.tags isEqual:((Post *)self.original).tags]))
-        return YES;
+    if (![self.tags isEqual:((Post *)self.original).tags]) return YES;
 
     if (![self.categories isEqual:((Post *)self.original).categories]) return YES;
 	
@@ -272,8 +307,8 @@
     NSMutableDictionary *postParams = [NSMutableDictionary dictionaryWithDictionary:[super XMLRPCDictionary]];
     
     [postParams setValueIfNotNil:self.postFormat forKey:@"wp_post_format"];
-    [postParams setValueIfNotNil:self.tags forKey:@"mt_keywords"];
-
+    [postParams setValueIfNotNil:self.tagsText forKey:@"mt_keywords"];
+    
     if ([self valueForKey:@"categories"] != nil) {
         NSMutableSet *categories = [self mutableSetValueForKey:@"categories"];
         NSMutableArray *categoryNames = [NSMutableArray arrayWithCapacity:[categories count]];

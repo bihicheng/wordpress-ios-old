@@ -36,7 +36,7 @@
 }
 @dynamic blogID, blogName, url, username, password, xmlrpc, apiKey;
 @dynamic isAdmin, hasOlderPosts, hasOlderPages;
-@dynamic posts, categories, comments; 
+@dynamic posts, categories, tags, comments; 
 @dynamic lastPostsSync, lastStatsSync, lastPagesSync, lastCommentsSync;
 @synthesize isSyncingPosts, isSyncingPages, isSyncingComments;
 @dynamic geolocationEnabled, options, postFormats;

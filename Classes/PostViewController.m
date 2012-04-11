@@ -39,7 +39,7 @@
 - (void)refreshUI {
     titleLabel.text = self.apost.postTitle;
     if (self.post) {
-        tagsLabel.text = self.post.tags;
+        tagsLabel.text = self.post.tagsText;
         categoriesLabel.text = [self.post categoriesText];
     }
 	if ((self.apost.mt_text_more != nil) && ([self.apost.mt_text_more length] > 0))

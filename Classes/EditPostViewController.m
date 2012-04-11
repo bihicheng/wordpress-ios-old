@@ -464,7 +464,7 @@ NSTimeInterval kAnimationDuration = 0.3f;
     titleTextField.text = self.apost.postTitle;
     if (self.post) {
         // FIXME: tags should be an array/set of Tag objects
-        tagsTextField.text = self.post.tags;
+        tagsTextField.text = self.post.tagsText;
         [categoriesButton setTitle:[self.post categoriesText] forState:UIControlStateNormal];
     }
     
@@ -1026,7 +1026,7 @@ NSTimeInterval kAnimationDuration = 0.3f;
 
     }
 	else if (textField == tagsTextField)
-        self.post.tags = tagsTextField.text;
+        [self.post setTagsFromNames:[tagsTextField.text componentsSeparatedByRegex:@", *"]];
     
     [self.apost autosave];
 }

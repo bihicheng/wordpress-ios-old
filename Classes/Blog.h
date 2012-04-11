@@ -17,6 +17,7 @@
 @property (nonatomic, assign) NSNumber *isAdmin, *hasOlderPosts, *hasOlderPages;
 @property (nonatomic, retain) NSSet *posts;
 @property (nonatomic, retain) NSSet *categories;
+@property (nonatomic, retain) NSSet *tags;
 @property (nonatomic, retain) NSSet *comments;
 @property (nonatomic, assign) BOOL isSyncingPosts;
 @property (nonatomic, assign) BOOL isSyncingPages;

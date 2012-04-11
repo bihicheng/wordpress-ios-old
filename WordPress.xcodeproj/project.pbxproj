@@ -470,6 +470,7 @@
 		E1D5549412E8C61C0032C680 /* Icon-dev.png in Resources */ = {isa = PBXBuildFile; fileRef = E1D5549012E8C61B0032C680 /* Icon-dev.png */; };
 		E1D5549512E8C61C0032C680 /* Icon-dev@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E1D5549112E8C61B0032C680 /* Icon-dev@2x.png */; };
 		E1D91456134A853D0089019C /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = E1D91454134A853D0089019C /* Localizable.strings */; };
+		E1DE1E891535983D00F6BF5E /* Tag.m in Sources */ = {isa = PBXBuildFile; fileRef = E1DE1E881535983D00F6BF5E /* Tag.m */; };
 		E1EE23E512E62864000B2BE6 /* movie.png in Resources */ = {isa = PBXBuildFile; fileRef = E1EE23E312E62864000B2BE6 /* movie.png */; };
 		E1EE23E612E62864000B2BE6 /* movie@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E1EE23E412E62864000B2BE6 /* movie@2x.png */; };
 		E1EE23E912E628F6000B2BE6 /* attachment.png in Resources */ = {isa = PBXBuildFile; fileRef = E1EE23E712E628F6000B2BE6 /* attachment.png */; };
@@ -1173,6 +1174,8 @@
 		E1D5549212E8C61B0032C680 /* Info-dev.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Info-dev.plist"; sourceTree = "<group>"; };
 		E1D91455134A853D0089019C /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		E1D91457134A854A0089019C /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
+		E1DE1E871535983D00F6BF5E /* Tag.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Tag.h; sourceTree = "<group>"; };
+		E1DE1E881535983D00F6BF5E /* Tag.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Tag.m; sourceTree = "<group>"; };
 		E1EE23E312E62864000B2BE6 /* movie.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = movie.png; sourceTree = "<group>"; };
 		E1EE23E412E62864000B2BE6 /* movie@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "movie@2x.png"; sourceTree = "<group>"; };
 		E1EE23E712E628F6000B2BE6 /* attachment.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = attachment.png; sourceTree = "<group>"; };
@@ -1459,6 +1462,8 @@
 				838C672D1210C3C300B09CA3 /* Post.m */,
 				833AF259114575A50016DE8F /* PostAnnotation.h */,
 				833AF25A114575A50016DE8F /* PostAnnotation.m */,
+				E1DE1E871535983D00F6BF5E /* Tag.h */,
+				E1DE1E881535983D00F6BF5E /* Tag.m */,
 			);
 			name = Models;
 			sourceTree = "<group>";
@@ -3061,6 +3066,7 @@
 				E140E625151229DD00900F0C /* AFJSONUtilities.m in Sources */,
 				E1330B0F151275300010018D /* AFAuthenticationAlertView.m in Sources */,
 				E12AAB621513C4B6009D025B /* WPComOAuthController.m in Sources */,
+				E1DE1E891535983D00F6BF5E /* Tag.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
