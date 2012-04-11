@@ -20,10 +20,12 @@
 - (AFXMLRPCRequestOperation *)operationForPostFormatsWithSuccess:(void (^)())success failure:(void (^)(NSError *error))failure;
 - (AFXMLRPCRequestOperation *)operationForCommentsWithSuccess:(void (^)())success failure:(void (^)(NSError *error))failure;
 - (AFXMLRPCRequestOperation *)operationForCategoriesWithSuccess:(void (^)())success failure:(void (^)(NSError *error))failure;
+- (AFXMLRPCRequestOperation *)operationForTagsWithSuccess:(void (^)())success failure:(void (^)(NSError *error))failure;
 - (AFXMLRPCRequestOperation *)operationForPostsWithSuccess:(void (^)())success failure:(void (^)(NSError *error))failure loadMore:(BOOL)more;
 - (AFXMLRPCRequestOperation *)operationForPagesWithSuccess:(void (^)())success failure:(void (^)(NSError *error))failure loadMore:(BOOL)more;
 
 - (void)mergeCategories:(NSArray *)newCategories;
+- (void)mergeTags:(NSArray *)newCategories;
 - (void)mergeComments:(NSArray *)newComments;
 - (void)mergePages:(NSArray *)newPages;
 - (void)mergePosts:(NSArray *)newPosts;
@@ -297,6 +299,11 @@
     [self.api enqueueXMLRPCRequestOperation:operation];
 }
 
+- (void)syncTagsWithSuccess:(void (^)())success failure:(void (^)(NSError *error))failure {
+    AFXMLRPCRequestOperation *operation = [self operationForTagsWithSuccess:success failure:failure];
+    [self.api enqueueXMLRPCRequestOperation:operation];
+}
+
 - (void)syncOptionsWithWithSuccess:(void (^)())success failure:(void (^)(NSError *error))failure {
     AFXMLRPCRequestOperation *operation = [self operationForOptionsWithSuccess:success failure:failure];
     [self.api enqueueXMLRPCRequestOperation:operation];
@@ -328,12 +335,14 @@
 
 - (void)syncBlogWithSuccess:(void (^)())success failure:(void (^)(NSError *error))failure {
     AFXMLRPCRequestOperation *operation;
-    NSMutableArray *operations = [NSMutableArray arrayWithCapacity:6];
+    NSMutableArray *operations = [NSMutableArray arrayWithCapacity:7];
     operation = [self operationForOptionsWithSuccess:nil failure:nil];
     [operations addObject:operation];
     operation = [self operationForPostFormatsWithSuccess:nil failure:nil];
     [operations addObject:operation];
     operation = [self operationForCategoriesWithSuccess:nil failure:nil];
+    [operations addObject:operation];
+    operation = [self operationForTagsWithSuccess:nil failure:nil];
     [operations addObject:operation];
     if (!self.isSyncingComments) {
         operation = [self operationForCommentsWithSuccess:nil failure:nil];
@@ -479,6 +488,28 @@
     return operation;    
 }
 
+- (AFXMLRPCRequestOperation *)operationForTagsWithSuccess:(void (^)())success failure:(void (^)(NSError *error))failure {
+    NSArray *parameters = [self getXMLRPCArgsWithExtra:@"post_tag"];
+    AFXMLRPCRequest *request = [self.api XMLRPCRequestWithMethod:@"wp.getTerms" parameters:parameters];
+    AFXMLRPCRequestOperation *operation = [self.api XMLRPCRequestOperationWithRequest:request success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        if ([self isDeleted])
+            return;
+        
+        [self mergeTags:responseObject];
+        if (success) {
+            success();
+        }
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        WPFLog(@"Error syncing tags: %@", [error localizedDescription]);
+        
+        if (failure) {
+            failure(error);
+        }
+    }];
+    
+    return operation;    
+}
+
 - (AFXMLRPCRequestOperation *)operationForPostsWithSuccess:(void (^)())success failure:(void (^)(NSError *error))failure loadMore:(BOOL)more {
     int num;
 
@@ -614,6 +645,34 @@
 		}
     }
 
+    [self dataSave];
+}
+
+- (void)mergeTags:(NSArray *)newTags {
+    // Don't even bother if blog has been deleted while fetching categories
+    if ([self isDeleted])
+        return;
+    
+	NSMutableArray *tagsToKeep = [NSMutableArray array];
+    for (NSDictionary *tagInfo in newTags) {
+        Tag *newTag = [Tag createOrReplaceFromDictionary:tagInfo forBlog:self];
+        if (newTag != nil) {
+            [tagsToKeep addObject:newTag];
+        } else {
+            WPFLog(@"-[Tag createOrReplaceFromDictionary:forBlog:] returned a nil category: %@", tagInfo);
+        }
+    }
+    
+	NSSet *syncedTags = self.tags;
+	if (syncedTags && (syncedTags.count > 0)) {
+		for (Tag *tag in syncedTags) {
+			if(![tagsToKeep containsObject:tag]) {
+				WPLog(@"Deleting Tag: %@", tag);
+				[[self managedObjectContext] deleteObject:tag];
+			}
+		}
+    }
+    
     [self dataSave];
 }
 

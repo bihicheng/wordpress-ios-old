@@ -292,7 +292,7 @@
 
 - (void)syncPosts {
     [self.blog syncCategoriesWithSuccess:^{
-        [self.blog syncCategoriesWithSuccess:nil failure:nil];
+        [self.blog syncTagsWithSuccess:nil failure:nil];
         [self.blog syncPostFormatsWithSuccess:nil failure:nil];
         [self.blog syncOptionsWithWithSuccess:nil failure:nil];
         [self.blog syncPostsWithSuccess:^{

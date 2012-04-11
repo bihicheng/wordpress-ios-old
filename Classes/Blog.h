@@ -50,6 +50,7 @@
 - (void)syncPostsWithSuccess:(void (^)())success failure:(void (^)(NSError *error))failure loadMore:(BOOL)more;
 - (void)syncPagesWithSuccess:(void (^)())success failure:(void (^)(NSError *error))failure loadMore:(BOOL)more;
 - (void)syncCategoriesWithSuccess:(void (^)())success failure:(void (^)(NSError *error))failure;
+- (void)syncTagsWithSuccess:(void (^)())success failure:(void (^)(NSError *error))failure;
 - (void)syncOptionsWithWithSuccess:(void (^)())success failure:(void (^)(NSError *error))failure;
 - (void)syncCommentsWithSuccess:(void (^)())success failure:(void (^)(NSError *error))failure;
 - (void)syncPostFormatsWithSuccess:(void (^)())success failure:(void (^)(NSError *error))failure;

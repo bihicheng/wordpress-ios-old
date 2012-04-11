@@ -16,4 +16,8 @@
 
 @property (nonatomic, retain) Blog *blog;
 @property (nonatomic, retain) NSMutableSet *posts;
+
++ (Tag *)findWithBlog:(Blog *)blog andTagID:(NSNumber *)tagID;
++ (Tag *)createOrReplaceFromDictionary:(NSDictionary *)tagInfo forBlog:(Blog *)blog;
+
 @end
