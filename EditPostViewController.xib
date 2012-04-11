@@ -3,12 +3,12 @@
 	<data>
 		<int key="IBDocument.SystemTarget">768</int>
 		<string key="IBDocument.SystemVersion">11D50b</string>
-		<string key="IBDocument.InterfaceBuilderVersion">1938</string>
+		<string key="IBDocument.InterfaceBuilderVersion">2182</string>
 		<string key="IBDocument.AppKitVersion">1138.32</string>
 		<string key="IBDocument.HIToolboxVersion">568.00</string>
 		<object class="NSMutableDictionary" key="IBDocument.PluginVersions">
 			<string key="NS.key.0">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
-			<string key="NS.object.0">933</string>
+			<string key="NS.object.0">1181</string>
 		</object>
 		<object class="NSArray" key="IBDocument.IntegratedClassDependencies">
 			<bool key="EncodedWithXMLCoder">YES</bool>
@@ -200,7 +200,7 @@
 											<int key="NSColorSpace">3</int>
 											<bytes key="NSWhite">MC41AA</bytes>
 										</object>
-										<object class="IBUIFontDescription" key="IBUIFontDescription" id="822340764">
+										<object class="IBUIFontDescription" key="IBUIFontDescription">
 											<string key="name">Helvetica-Light</string>
 											<string key="family">Helvetica</string>
 											<int key="traits">0</int>
@@ -211,36 +211,6 @@
 											<double key="NSSize">16</double>
 											<int key="NSfFlags">16</int>
 										</object>
-									</object>
-									<object class="IBUITextField" id="386506518">
-										<reference key="NSNextResponder" ref="805652007"/>
-										<int key="NSvFlags">292</int>
-										<string key="NSFrame">{{102, 50}, {205, 31}}</string>
-										<reference key="NSSuperview" ref="805652007"/>
-										<reference key="NSWindow"/>
-										<reference key="NSNextKeyView" ref="518513191"/>
-										<bool key="IBUIOpaque">NO</bool>
-										<bool key="IBUIClipsSubviews">YES</bool>
-										<object class="IBUIAccessibilityConfiguration" key="IBUIAccessibilityConfiguration">
-											<string key="IBUIAccessibilityLabel"/>
-										</object>
-										<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
-										<int key="IBUIContentVerticalAlignment">0</int>
-										<string key="IBUIText"/>
-										<string key="IBUIPlaceholder">Separate tags with commas</string>
-										<object class="NSColor" key="IBUITextColor">
-											<int key="NSColorSpace">3</int>
-											<bytes key="NSWhite">MAA</bytes>
-											<reference key="NSCustomColorSpace" ref="16354658"/>
-										</object>
-										<float key="IBUIMinimumFontSize">17</float>
-										<object class="IBUITextInputTraits" key="IBUITextInputTraits">
-											<int key="IBUIAutocapitalizationType">2</int>
-											<int key="IBUIReturnKeyType">9</int>
-											<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
-										</object>
-										<reference key="IBUIFontDescription" ref="822340764"/>
-										<reference key="IBUIFont" ref="589588911"/>
 									</object>
 									<object class="IBUIImageView" id="168636119">
 										<reference key="NSNextResponder" ref="805652007"/>
@@ -259,7 +229,7 @@
 										<string key="NSFrame">{{7, 55}, {87, 21}}</string>
 										<reference key="NSSuperview" ref="805652007"/>
 										<reference key="NSWindow"/>
-										<reference key="NSNextKeyView" ref="386506518"/>
+										<reference key="NSNextKeyView"/>
 										<bool key="IBUIOpaque">NO</bool>
 										<bool key="IBUIClipsSubviews">YES</bool>
 										<int key="IBUIContentMode">7</int>
@@ -580,14 +550,6 @@
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBCocoaTouchOutletConnection" key="connection">
-						<string key="label">tagsTextField</string>
-						<reference key="source" ref="372490531"/>
-						<reference key="destination" ref="386506518"/>
-					</object>
-					<int key="connectionID">346</int>
-				</object>
-				<object class="IBConnectionRecord">
-					<object class="IBCocoaTouchOutletConnection" key="connection">
 						<string key="label">tagsLabel</string>
 						<reference key="source" ref="372490531"/>
 						<reference key="destination" ref="965748449"/>
@@ -732,14 +694,6 @@
 					<int key="connectionID">375</int>
 				</object>
 				<object class="IBConnectionRecord">
-					<object class="IBCocoaTouchOutletConnection" key="connection">
-						<string key="label">delegate</string>
-						<reference key="source" ref="386506518"/>
-						<reference key="destination" ref="372490531"/>
-					</object>
-					<int key="connectionID">357</int>
-				</object>
-				<object class="IBConnectionRecord">
 					<object class="IBCocoaTouchEventConnection" key="connection">
 						<string key="label">switchToSettings</string>
 						<reference key="source" ref="241552921"/>
@@ -870,7 +824,6 @@
 						<object class="NSMutableArray" key="children">
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<reference ref="282800797"/>
-							<reference ref="386506518"/>
 							<reference ref="965748449"/>
 							<reference ref="968581804"/>
 							<reference ref="168636119"/>
@@ -889,12 +842,6 @@
 						<reference key="object" ref="282800797"/>
 						<reference key="parent" ref="805652007"/>
 						<string key="objectName">titleTextField</string>
-					</object>
-					<object class="IBObjectRecord">
-						<int key="objectID">341</int>
-						<reference key="object" ref="386506518"/>
-						<reference key="parent" ref="805652007"/>
-						<string key="objectName">tagsTextField</string>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">343</int>
@@ -998,7 +945,6 @@
 					<string>328.IBPluginDependency</string>
 					<string>339.IBPluginDependency</string>
 					<string>340.IBPluginDependency</string>
-					<string>341.IBPluginDependency</string>
 					<string>342.IBPluginDependency</string>
 					<string>343.IBPluginDependency</string>
 					<string>348.IBPluginDependency</string>
@@ -1009,12 +955,11 @@
 					<string>377.IBPluginDependency</string>
 					<string>377.IBUIButtonInspectorSelectedStateConfigurationMetadataKey</string>
 				</object>
-				<object class="NSMutableArray" key="dict.values">
+				<object class="NSArray" key="dict.values">
 					<bool key="EncodedWithXMLCoder">YES</bool>
 					<string>EditPostViewController</string>
 					<string>com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 					<string>UIResponder</string>
-					<string>com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 					<string>com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 					<string>com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 					<string>com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
@@ -1055,7 +1000,7 @@
 				<reference key="dict.values" ref="0"/>
 			</object>
 			<nil key="sourceID"/>
-			<int key="maxID">380</int>
+			<int key="maxID">382</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<object class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -1078,7 +1023,7 @@
 							<string>switchToSettings</string>
 							<string>touchTextView:</string>
 						</object>
-						<object class="NSMutableArray" key="dict.values">
+						<object class="NSArray" key="dict.values">
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<string>id</string>
 							<string>id</string>
@@ -1107,7 +1052,7 @@
 							<string>switchToSettings</string>
 							<string>touchTextView:</string>
 						</object>
-						<object class="NSMutableArray" key="dict.values">
+						<object class="NSArray" key="dict.values">
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<object class="IBActionInfo">
 								<string key="name">addPhoto:</string>
@@ -1182,7 +1127,7 @@
 							<string>toolbar</string>
 							<string>writeButton</string>
 						</object>
-						<object class="NSMutableArray" key="dict.values">
+						<object class="NSArray" key="dict.values">
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<string>UIBarButtonItem</string>
 							<string>UIButton</string>
@@ -1202,7 +1147,7 @@
 							<string>UIView</string>
 							<string>UIImageView</string>
 							<string>UILabel</string>
-							<string>UITextField</string>
+							<string>TITokenFieldView</string>
 							<string>UITextView</string>
 							<string>UIView</string>
 							<string>UITextField</string>
@@ -1243,7 +1188,7 @@
 							<string>toolbar</string>
 							<string>writeButton</string>
 						</object>
-						<object class="NSMutableArray" key="dict.values">
+						<object class="NSArray" key="dict.values">
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<object class="IBToOneOutletInfo">
 								<string key="name">attachmentButton</string>
@@ -1319,7 +1264,7 @@
 							</object>
 							<object class="IBToOneOutletInfo">
 								<string key="name">tagsTextField</string>
-								<string key="candidateClassName">UITextField</string>
+								<string key="candidateClassName">TITokenFieldView</string>
 							</object>
 							<object class="IBToOneOutletInfo">
 								<string key="name">textView</string>
@@ -1356,6 +1301,14 @@
 						<string key="minorKey">./Classes/EditPostViewController.h</string>
 					</object>
 				</object>
+				<object class="IBPartialClassDescription">
+					<string key="className">TITokenFieldView</string>
+					<string key="superclassName">UIScrollView</string>
+					<object class="IBClassDescriptionSource" key="sourceIdentifier">
+						<string key="majorKey">IBProjectSource</string>
+						<string key="minorKey">./Classes/TITokenFieldView.h</string>
+					</object>
+				</object>
 			</object>
 		</object>
 		<int key="IBDocument.localizationMode">0</int>
@@ -1366,7 +1319,7 @@
 		</object>
 		<object class="NSMutableDictionary" key="IBDocument.PluginDeclaredDependencyDefaults">
 			<string key="NS.key.0">com.apple.InterfaceBuilder.CocoaTouchPlugin.iPhoneOS</string>
-			<real value="1280" key="NS.object.0"/>
+			<real value="1296" key="NS.object.0"/>
 		</object>
 		<object class="NSMutableDictionary" key="IBDocument.PluginDeclaredDevelopmentDependencies">
 			<string key="NS.key.0">com.apple.InterfaceBuilder.CocoaTouchPlugin.InterfaceBuilder3</string>
@@ -1389,7 +1342,7 @@
 				<string>whitebg.png</string>
 				<string>write.png</string>
 			</object>
-			<object class="NSMutableArray" key="dict.values">
+			<object class="NSArray" key="dict.values">
 				<bool key="EncodedWithXMLCoder">YES</bool>
 				<string>{14, 26}</string>
 				<string>{29, 29}</string>
@@ -1403,6 +1356,6 @@
 				<string>{24, 24}</string>
 			</object>
 		</object>
-		<string key="IBCocoaTouchPluginVersion">933</string>
+		<string key="IBCocoaTouchPluginVersion">1181</string>
 	</data>
 </archive>

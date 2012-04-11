@@ -471,6 +471,7 @@
 		E1D5549512E8C61C0032C680 /* Icon-dev@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E1D5549112E8C61B0032C680 /* Icon-dev@2x.png */; };
 		E1D91456134A853D0089019C /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = E1D91454134A853D0089019C /* Localizable.strings */; };
 		E1DE1E891535983D00F6BF5E /* Tag.m in Sources */ = {isa = PBXBuildFile; fileRef = E1DE1E881535983D00F6BF5E /* Tag.m */; };
+		E1DE1E8C1535B0B700F6BF5E /* TITokenField.m in Sources */ = {isa = PBXBuildFile; fileRef = E1DE1E8B1535B0B700F6BF5E /* TITokenField.m */; };
 		E1EE23E512E62864000B2BE6 /* movie.png in Resources */ = {isa = PBXBuildFile; fileRef = E1EE23E312E62864000B2BE6 /* movie.png */; };
 		E1EE23E612E62864000B2BE6 /* movie@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E1EE23E412E62864000B2BE6 /* movie@2x.png */; };
 		E1EE23E912E628F6000B2BE6 /* attachment.png in Resources */ = {isa = PBXBuildFile; fileRef = E1EE23E712E628F6000B2BE6 /* attachment.png */; };
@@ -1176,6 +1177,8 @@
 		E1D91457134A854A0089019C /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
 		E1DE1E871535983D00F6BF5E /* Tag.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Tag.h; sourceTree = "<group>"; };
 		E1DE1E881535983D00F6BF5E /* Tag.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Tag.m; sourceTree = "<group>"; };
+		E1DE1E8A1535B0B700F6BF5E /* TITokenField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TITokenField.h; path = Vendor/TITokenField/TITokenField.h; sourceTree = "<group>"; };
+		E1DE1E8B1535B0B700F6BF5E /* TITokenField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TITokenField.m; path = Vendor/TITokenField/TITokenField.m; sourceTree = "<group>"; };
 		E1EE23E312E62864000B2BE6 /* movie.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = movie.png; sourceTree = "<group>"; };
 		E1EE23E412E62864000B2BE6 /* movie@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "movie@2x.png"; sourceTree = "<group>"; };
 		E1EE23E712E628F6000B2BE6 /* attachment.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = attachment.png; sourceTree = "<group>"; };
@@ -2203,6 +2206,7 @@
 		E12F55F714A1F2640060A510 /* Vendor */ = {
 			isa = PBXGroup;
 			children = (
+				E1DE1E8D1535B0BC00F6BF5E /* TITokenField */,
 				FDA68C1D14AC6CB800151896 /* Reachability */,
 				E1F807F714641AC700726BC7 /* AFNetworking */,
 				FD0D42C2149A0B5500F5E115 /* InAppSettings */,
@@ -2379,6 +2383,15 @@
 				E1D5549212E8C61B0032C680 /* Info-dev.plist */,
 			);
 			name = "Dev builds";
+			sourceTree = "<group>";
+		};
+		E1DE1E8D1535B0BC00F6BF5E /* TITokenField */ = {
+			isa = PBXGroup;
+			children = (
+				E1DE1E8A1535B0B700F6BF5E /* TITokenField.h */,
+				E1DE1E8B1535B0B700F6BF5E /* TITokenField.m */,
+			);
+			name = TITokenField;
 			sourceTree = "<group>";
 		};
 		E1F807F714641AC700726BC7 /* AFNetworking */ = {
@@ -3067,6 +3080,7 @@
 				E1330B0F151275300010018D /* AFAuthenticationAlertView.m in Sources */,
 				E12AAB621513C4B6009D025B /* WPComOAuthController.m in Sources */,
 				E1DE1E891535983D00F6BF5E /* Tag.m in Sources */,
+				E1DE1E8C1535B0B700F6BF5E /* TITokenField.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

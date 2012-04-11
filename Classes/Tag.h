@@ -17,7 +17,10 @@
 @property (nonatomic, retain) Blog *blog;
 @property (nonatomic, retain) NSMutableSet *posts;
 
++ (BOOL)existsName:(NSString *)name forBlog:(Blog *)blog;
++ (Tag *)findWithBlog:(Blog *)blog andName:(NSString *)name;
 + (Tag *)findWithBlog:(Blog *)blog andTagID:(NSNumber *)tagID;
 + (Tag *)createOrReplaceFromDictionary:(NSDictionary *)tagInfo forBlog:(Blog *)blog;
++ (Tag *)createTag:(NSString *)name forBlog:(Blog *)blog success:(void (^)(Tag *tag))success failure:(void (^)(NSError *error))failure;
 
 @end

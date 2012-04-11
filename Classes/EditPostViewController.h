@@ -9,6 +9,7 @@
 #import "Post.h"
 #import "UIDevice-hardware.h"
 #import "WPKeyboardToolbar.h"
+#import "TITokenField.h"
 
 #define kSelectionsStatusContext ((void *)1000)
 #define kSelectionsCategoriesContext ((void *)2000)
@@ -18,7 +19,7 @@
 @class WPSegmentedSelectionTableViewController, PostSettingsViewController, PostPreviewViewController;
 
 @interface EditPostViewController : UIViewController <UIActionSheetDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate,
-UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate, UIPickerViewDelegate,UIPopoverControllerDelegate,WPKeyboardToolbarDelegate> {
+UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate, UIPickerViewDelegate,UIPopoverControllerDelegate,WPKeyboardToolbarDelegate, TITokenFieldDelegate> {
     BOOL isShowPhotoPickerActionSheet;
     BOOL isTextViewEditing;
     BOOL dismiss;
@@ -31,7 +32,7 @@ UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate, UIPickerViewDel
 
     IBOutlet UITextView *textView;
     IBOutlet UITextField *titleTextField;
-    IBOutlet UITextField *tagsTextField;
+    IBOutlet TITokenFieldView *tagsTextField;
     IBOutlet UIView *subView;
     IBOutlet UILabel *titleLabel;
     IBOutlet UITextField *textViewPlaceHolderField;
@@ -85,7 +86,8 @@ UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate, UIPickerViewDel
 @property (nonatomic, retain) IBOutlet UITextView *textView;
 @property (nonatomic, retain) IBOutlet UIToolbar *toolbar;
 @property (nonatomic, retain) IBOutlet UIView *contentView, *subView, *textViewContentView;;
-@property (nonatomic, retain) IBOutlet UITextField *statusTextField, *titleTextField, *tagsTextField, *textViewPlaceHolderField;
+@property (nonatomic, retain) IBOutlet UITextField *statusTextField, *titleTextField, *textViewPlaceHolderField;
+@property (nonatomic, retain) IBOutlet TITokenFieldView *tagsTextField;
 @property (nonatomic, retain) IBOutlet UILabel *tagsLabel, *statusLabel, *categoriesLabel, *titleLabel;
 @property (nonatomic, retain) IBOutlet UIBarButtonItem *createCategoryBarButtonItem;
 @property (nonatomic, retain) IBOutlet UIButton *hasLocation, *categoriesButton;

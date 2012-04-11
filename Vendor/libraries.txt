@@ -13,3 +13,7 @@ Version: 27706b96b8a7a21132ce8a89d287eff0298db682
 Reachability
 Source: https://github.com/tonymillion/Reachability
 Version: 1cf8f0ff987cc473c6be9204eb3abb7f6322a805
+
+TITokenField
+Source: https://github.com/thermogl/TITokenField
+Version: 197fa2d71a8b5d79987b7d6e6c5d334ef8cc6d65

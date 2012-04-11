@@ -250,7 +250,16 @@ NSTimeInterval kAnimationDuration = 0.3f;
 
     titleLabel.text = NSLocalizedString(@"Title:", @"");
     tagsLabel.text = NSLocalizedString(@"Tags:", @"");
-    tagsTextField.placeholder = NSLocalizedString(@"Separate tags with commas", @"");
+    [tagsLabel removeFromSuperview];
+    tagsTextField = [[TITokenFieldView alloc] initWithFrame:CGRectMake(0, 43, self.view.bounds.size.width, self.view.bounds.size.height - 259)];
+    tagsTextField.backgroundColor = [UIColor clearColor];
+    tagsTextField.tokenField.font = [UIFont systemFontOfSize:16.0f];
+    tagsTextField.tokenField.textColor = [UIColor lightGrayColor];
+    tagsTextField.tokenField.placeholder = NSLocalizedString(@"Separate tags with commas", @"");
+    tagsTextField.tokenField.delegate = self;
+    [tagsTextField.tokenField setPromptText:NSLocalizedString(@"Tags:", @"")];
+    [tagsTextField setSourceArray:[[self.post.blog.tags valueForKey:@"name"] allObjects]];
+    [editView addSubview:tagsTextField];
     categoriesLabel.text = NSLocalizedString(@"Categories:", @"");
     textViewPlaceHolderField.placeholder = NSLocalizedString(@"Tap here to begin writing", @"");
 	textViewPlaceHolderField.textAlignment = UITextAlignmentCenter; 
@@ -463,8 +472,10 @@ NSTimeInterval kAnimationDuration = 0.3f;
 	
     titleTextField.text = self.apost.postTitle;
     if (self.post) {
-        // FIXME: tags should be an array/set of Tag objects
-        tagsTextField.text = self.post.tagsText;
+        for (Tag *tag in self.post.tags) {
+            TIToken *token = [[[TIToken alloc] initWithTitle:tag.name representedObject:tag] autorelease];
+            [tagsTextField.tokenField addToken:token];
+        }
         [categoriesButton setTitle:[self.post categoriesText] forState:UIControlStateNormal];
     }
     
@@ -1025,8 +1036,17 @@ NSTimeInterval kAnimationDuration = 0.3f;
         }
 
     }
-	else if (textField == tagsTextField)
-        [self.post setTagsFromNames:[tagsTextField.text componentsSeparatedByRegex:@", *"]];
+	else if (textField == tagsTextField.tokenField) {
+        NSMutableSet *tags = [NSMutableSet setWithCapacity:tagsTextField.tokenField.tokens.count];
+        for (TIToken *token in tagsTextField.tokenField.tokens) {
+            Tag *tag = [Tag findWithBlog:self.post.blog andName:token.title];
+            if (tag == nil) {
+                tag = [Tag createTag:token.title forBlog:self.post.blog success:nil failure:nil];
+            }
+            [tags addObject:tag];
+        }
+        self.post.tags = tags;
+    }
     
     [self.apost autosave];
 }

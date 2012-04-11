@@ -27,6 +27,21 @@
     return tag;
 }
 
++ (BOOL)existsName:(NSString *)name forBlog:(Blog *)blog {
+    return [self findWithBlog:blog andName:name] != nil;
+}
+
++ (Tag *)findWithBlog:(Blog *)blog andName:(NSString *)name {
+    Tag *tag = nil;
+    
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"name like %@", name];
+    NSSet *items = [blog.tags filteredSetUsingPredicate:predicate];
+    if ((items != nil) && (items.count > 0)) {
+        tag = [[items allObjects] objectAtIndex:0];
+    }
+    return tag;
+}
+
 + (Tag *)findWithBlog:(Blog *)blog andTagID:(NSNumber *)tagID {
     NSSet *results = [blog.tags filteredSetUsingPredicate:[NSPredicate predicateWithFormat:@"tagID == %@", tagID]];
     
@@ -54,6 +69,38 @@
     tag.name = [tagInfo objectForKey:@"name"];
     tag.count = [tagInfo objectForKey:@"count"];
     
+    return tag;
+}
+
++ (Tag *)createTag:(NSString *)name forBlog:(Blog *)blog success:(void (^)(Tag *))success failure:(void (^)(NSError *))failure {
+    Tag *tag = [Tag newTagForBlog:blog];
+    tag.name = name;
+    tag.count = [NSNumber numberWithInt:1];
+    
+    NSDictionary *parameters = [NSDictionary dictionaryWithObjectsAndKeys:
+                                tag.name, @"name",
+                                @"post_tag", @"taxonomy",
+                                nil];
+    [blog.api callMethod:@"wp.newTerm"
+              parameters:[blog getXMLRPCArgsWithExtra:parameters]
+                 success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                     int newID = [responseObject intValue];
+                     if (newID > 0) {
+                         tag.tagID = [NSNumber numberWithInt:newID];
+                         [blog dataSave];
+                     }
+                     if (success) {
+                         success(tag);
+                     }
+                 } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                     WPLog(@"Error while creating tag: %@", [error localizedDescription]);
+                     [[blog managedObjectContext] deleteObject:tag];
+                     [blog dataSave];
+                     if (failure) {
+                         failure(error);
+                     }
+                 }];
+
     return tag;
 }
 
