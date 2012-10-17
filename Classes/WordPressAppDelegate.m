@@ -11,6 +11,7 @@
 #import "CameraPlusPickerManager.h"
 #import "PanelNavigationController.h"
 #import "SidebarViewController.h"
+#import "UIDevice+WordPressIdentifier.h"
 
 @interface WordPressAppDelegate (Private)
 - (void)setAppBadge;
@@ -901,7 +902,7 @@ static WordPressAppDelegate *wordPressApp = NULL;
 	 */
 	
 	NSString *deviceModel = [[[UIDevice currentDevice] platform] stringByUrlEncoding];
-	NSString *deviceuuid = [[UIDevice currentDevice] uniqueIdentifier];
+	NSString *deviceuuid = [[UIDevice currentDevice] wordpressIdentifier];
 	NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
 	NSString *appversion = [[info objectForKey:@"CFBundleVersion"] stringByUrlEncoding];
 	NSLocale *locale = [NSLocale currentLocale];
@@ -1135,7 +1136,7 @@ static WordPressAppDelegate *wordPressApp = NULL;
 #endif
             AFXMLRPCClient *api = [[AFXMLRPCClient alloc] initWithXMLRPCEndpoint:[NSURL URLWithString:authURL]];
             [api callMethod:@"wpcom.mobile_push_register_token"
-                 parameters:[NSArray arrayWithObjects:username, password, token, [[UIDevice currentDevice] uniqueIdentifier], @"apple", sandbox, nil]
+                 parameters:[NSArray arrayWithObjects:username, password, token, [[UIDevice currentDevice] wordpressIdentifier], @"apple", sandbox, nil]
                     success:^(AFHTTPRequestOperation *operation, id responseObject) {
                         WPFLog(@"Registered token %@, sending blogs list", token);
                         [self sendPushNotificationBlogsList];
@@ -1175,7 +1176,7 @@ static WordPressAppDelegate *wordPressApp = NULL;
 #endif
             AFXMLRPCClient *api = [[AFXMLRPCClient alloc] initWithXMLRPCEndpoint:[NSURL URLWithString:authURL]];
             [api callMethod:@"wpcom.mobile_push_unregister_token"
-                 parameters:[NSArray arrayWithObjects:username, password, token, [[UIDevice currentDevice] uniqueIdentifier], @"apple", sandbox, nil]
+                 parameters:[NSArray arrayWithObjects:username, password, token, [[UIDevice currentDevice] wordpressIdentifier], @"apple", sandbox, nil]
                     success:^(AFHTTPRequestOperation *operation, id responseObject) {
                         WPFLog(@"Unregistered token %@", token);
                     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
