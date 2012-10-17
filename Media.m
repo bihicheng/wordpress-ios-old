@@ -9,6 +9,7 @@
 #import "Media.h"
 #import "UIImage+Resize.h"
 #import "NSString+Helpers.h"
+#import "AFHTTPRequestOperation.h"
 
 @interface Media (PrivateMethods)
 - (void)xmlrpcUploadWithSuccess:(void (^)())success failure:(void (^)(NSError *error))failure ;
@@ -188,7 +189,7 @@
                 [_uploadOperation release]; _uploadOperation = nil;
                 if (failure) failure(error);
             }];
-            [operation setUploadProgressBlock:^(NSInteger bytesWritten, NSInteger totalBytesWritten, NSInteger totalBytesExpectedToWrite) {
+            [operation setUploadProgressBlock:^(NSUInteger bytesWritten, long long totalBytesWritten, long long totalBytesExpectedToWrite) {
                 dispatch_async(dispatch_get_main_queue(), ^(void) {
                     self.progress = (float)totalBytesWritten / (float)totalBytesExpectedToWrite;
                 });
