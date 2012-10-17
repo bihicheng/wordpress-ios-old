@@ -16,10 +16,10 @@
 #endif
 
 @interface WordPressApi ()
-@property (readwrite, nonatomic, retain) NSURL *xmlrpc;
-@property (readwrite, nonatomic, retain) NSString *username;
-@property (readwrite, nonatomic, retain) NSString *password;
-@property (readwrite, nonatomic, retain) AFXMLRPCClient *client;
+@property (readwrite, nonatomic, strong) NSURL *xmlrpc;
+@property (readwrite, nonatomic, strong) NSString *username;
+@property (readwrite, nonatomic, strong) NSString *password;
+@property (readwrite, nonatomic, strong) AFXMLRPCClient *client;
 + (void)validateXMLRPCUrl:(NSURL *)url success:(void (^)())success failure:(void (^)(NSError *error))failure;
 + (void)logExtraInfo:(NSString *)format, ...;
 @end
@@ -37,7 +37,7 @@
 @synthesize client = _client;
 
 + (WordPressApi *)apiWithXMLRPCEndpoint:(NSURL *)xmlrpc username:(NSString *)username password:(NSString *)password {
-    return [[[self alloc] initWithXMLRPCEndpoint:xmlrpc username:username password:password] autorelease];
+    return [[self alloc] initWithXMLRPCEndpoint:xmlrpc username:username password:password];
 }
 
 
@@ -57,13 +57,6 @@
     return self;
 }
 
-- (void)dealloc {
-    [_xmlrpc release];
-    [_username release];
-    [_password release];
-    [_client release];
-    [super dealloc];
-}
 
 #pragma mark - Authentication
 
@@ -157,7 +150,7 @@
             // ---------------------------------------------------
             [self logExtraInfo:@"3. Fetch the original url and look for the RSD link by using RegExp"];
             NSURLRequest *request = [NSURLRequest requestWithURL:xmlrpcURL];
-            AFHTTPRequestOperation *operation = [[[AFHTTPRequestOperation alloc] initWithRequest:request] autorelease];
+            AFHTTPRequestOperation *operation = [[AFHTTPRequestOperation alloc] initWithRequest:request];
             [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
                 NSError *error = NULL;
                 NSRegularExpression *rsdURLRegExp = [NSRegularExpression regularExpressionWithPattern:@"<link\\s+rel=\"EditURI\"\\s+type=\"application/rsd\\+xml\"\\s+title=\"RSD\"\\s+href=\"([^\"]*)\"[^/]*/>" options:NSRegularExpressionCaseInsensitive error:&error];
@@ -174,7 +167,7 @@
                     [self logExtraInfo:@"The RSD link not found using RegExp, on the following doc: %@", operation.responseString];
                     [self logExtraInfo:@"Try to find it again on a cleaned HTML document"];
                     NSError *htmlError;
-                    CXMLDocument *rsdHTML = [[[CXMLDocument alloc] initWithXMLString:operation.responseString options:CXMLDocumentTidyXML error:&htmlError] autorelease];
+                    CXMLDocument *rsdHTML = [[CXMLDocument alloc] initWithXMLString:operation.responseString options:CXMLDocumentTidyXML error:&htmlError];
                     if(!htmlError) {
                         NSString *cleanedHTML = [rsdHTML XMLStringWithOptions:CXMLDocumentTidyXML];
                         [self logExtraInfo:@"The cleaned doc: %@", cleanedHTML];
@@ -196,10 +189,10 @@
                         // 5. Parse the RSD document
                         // -------------------------
                         NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:rsdURL]];
-                        AFHTTPRequestOperation *operation = [[[AFHTTPRequestOperation alloc] initWithRequest:request] autorelease];
+                        AFHTTPRequestOperation *operation = [[AFHTTPRequestOperation alloc] initWithRequest:request];
                         [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
                             NSError *rsdError;
-                            CXMLDocument *rsdXML = [[[CXMLDocument alloc] initWithXMLString:operation.responseString options:CXMLDocumentTidyXML error:&rsdError] autorelease];
+                            CXMLDocument *rsdXML = [[CXMLDocument alloc] initWithXMLString:operation.responseString options:CXMLDocumentTidyXML error:&rsdError];
                             if (!rsdError) {
                                 @try {
                                     CXMLElement *serviceXML = [[[rsdXML rootElement] children] objectAtIndex:1];
@@ -226,7 +219,7 @@
                             [self logExtraInfo: [error localizedDescription]];
                             if (failure) failure(error);
                         }];
-                        NSOperationQueue *queue = [[[NSOperationQueue alloc] init] autorelease];
+                        NSOperationQueue *queue = [[NSOperationQueue alloc] init];
                         [queue addOperation:operation];
                     };
                     // ----------------------------------------------------------------------------
@@ -253,7 +246,7 @@
                 [self logExtraInfo:@"Can't fetch the original url: %@", [error localizedDescription]];
                 if (failure) failure(error);
             }];
-            NSOperationQueue *queue = [[[NSOperationQueue alloc] init] autorelease];
+            NSOperationQueue *queue = [[NSOperationQueue alloc] init];
             [queue addOperation:operation];
         }];
     }];
@@ -292,7 +285,6 @@
 	va_start(ap, format);
 	NSString *message = [[NSString alloc] initWithFormat:format arguments:ap];
     WPFLog(@"[WordPressApi] < %@", message);
-    [message release];
 }
 
 @end

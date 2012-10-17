@@ -17,7 +17,7 @@
 
 + (WPWebBridge *)bridge {
     WPWebBridge *bridge = [[WPWebBridge alloc] init];
-    return [bridge autorelease];
+    return bridge;
 }
 
 /*
@@ -143,7 +143,7 @@
             [invocation retainArguments];
             invocation.selector = aSelector;
             invocation.target = self.delegate;
-            [args enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+            [args enumerateObjectsUsingBlock:^(__unsafe_unretained id obj, NSUInteger idx, BOOL *stop) {
                 [invocation setArgument:&obj atIndex:idx + 2];
             }];
         }

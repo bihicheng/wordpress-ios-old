@@ -42,7 +42,6 @@ CGFloat const BadgeHeight = 24.f;
         // Set up the tap gesture recognizer.
         UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(toggleOpen:)];
         [self addGestureRecognizer:tapGesture];
-        [tapGesture release];
         
         _blog = blog;
         _delegate = delegate;        
@@ -85,7 +84,7 @@ CGFloat const BadgeHeight = 24.f;
         _titleLabel = label;
         
         CGRect commentsBadgedRect = [self badgeItemFrame:BadgeHeight];
-        UIImageView *commentsIconImgView = [[[UIImageView alloc] initWithFrame:commentsBadgedRect] autorelease];
+        UIImageView *commentsIconImgView = [[UIImageView alloc] initWithFrame:commentsBadgedRect];
         if ( numberOfPendingComments > 0 ) {
             UIImage *img = [UIImage imageNamed:@"sidebar_comment_bubble"];
             commentsIconImgView.image = img;
@@ -246,9 +245,6 @@ CGFloat const BadgeHeight = 24.f;
 
 - (void)dealloc {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-    [background release];
-    [blavatarView release];
-    [super dealloc];
 }
 
 @end

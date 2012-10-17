@@ -22,12 +22,12 @@
     AFXMLRequestOperation *currentRequest;
 }
 
-@property (nonatomic, retain) Blog *blog;
-@property (nonatomic, retain) NSMutableString *currentNode;
-@property (nonatomic, retain) NSMutableDictionary *parsedBlog;
-@property (nonatomic, retain) NSString *username;
-@property (nonatomic, retain) NSString *password;
-@property (nonatomic, retain) AFXMLRequestOperation *currentRequest;
+@property (nonatomic, strong) Blog *blog;
+@property (nonatomic, strong) NSMutableString *currentNode;
+@property (nonatomic, strong) NSMutableDictionary *parsedBlog;
+@property (nonatomic, strong) NSString *username;
+@property (nonatomic, strong) NSString *password;
+@property (nonatomic, strong) AFXMLRequestOperation *currentRequest;
 
 - (void)saveCredentials;
 
@@ -82,18 +82,11 @@
 
 
 - (void)dealloc {
-    [blog release];
-    [currentNode release];
-    [parsedBlog release];
-    [username release];
-    [password release];
     
     if ([currentRequest isExecuting]) {
         [currentRequest cancel];
     }
-    [currentRequest release];
     
-    [super dealloc];
 }
 
 
@@ -118,7 +111,7 @@
     
     NSMutableURLRequest *mRequest = [httpClient requestWithMethod:@"GET" path:@"get-user-blogs/1.0" parameters:nil];
     
-    self.currentRequest = [[[AFXMLRequestOperation alloc] initWithRequest:mRequest] autorelease];
+    self.currentRequest = [[AFXMLRequestOperation alloc] initWithRequest:mRequest];
     
     [currentRequest setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
         self.currentRequest = nil;
@@ -140,7 +133,6 @@
     }];
     
     [currentRequest start];
-    [httpClient release];
 }
 
 
@@ -184,14 +176,14 @@
         [FileLogger log:@"Blog URL - %@", blogURL];
         [FileLogger log:@"Parsed URL - %@", parsedURL];
 
-        NSMutableString *parsedHost = [[[parsedURL host] mutableCopy] autorelease];
+        NSMutableString *parsedHost = [[parsedURL host] mutableCopy];
         [parsedHost replaceOccurrencesOfString:@"www." withString:@"" options:0 range:NSMakeRange(0, [parsedHost length])];
         parsedHost = [NSMutableString stringWithFormat:@"%@%@",parsedHost, [parsedURL path]];
         if (![parsedHost hasSuffix:@"/"]) {
             [parsedHost appendString:@"/"];
         }
         
-        NSMutableString *blogHost = [[[blogURL host] mutableCopy] autorelease];
+        NSMutableString *blogHost = [[blogURL host] mutableCopy];
         [blogHost replaceOccurrencesOfString:@"www." withString:@"" options:0 range:NSMakeRange(0, [blogHost length])];
         blogHost = [NSMutableString stringWithFormat:@"%@%@",blogHost, [blogURL path]];
         if (![blogHost hasSuffix:@"/"]) {

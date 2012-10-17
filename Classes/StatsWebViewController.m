@@ -63,24 +63,15 @@ static NSString *_lastAuthedName = nil;
 }
 
 + (void)setLastAuthedName:(NSString *)str {
-    if (_lastAuthedName) {
-        [_lastAuthedName release];
-    }
     _lastAuthedName = [str copy];
 }
 
 
 - (void)dealloc {
-    [blog release];
-    [wporgBlogJetpackKey release];
     if (authRequest && [authRequest isExecuting]) {
         [authRequest cancel];
     }
-    [authRequest release];
-    jetpackAuthUtil.delegate = nil;
-    [jetpackAuthUtil release];
-    
-    [super dealloc];
+    jetpackAuthUtil.delegate = nil; 
 }
 
 
@@ -139,7 +130,6 @@ static NSString *_lastAuthedName = nil;
                                                   cancelButtonTitle:NSLocalizedString(@"OK", @"")
                                                   otherButtonTitles:nil];
         [alertView show];
-        [alertView release];   
     } else {
         UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Jetpack Sign In", @"")
                                                             message:NSLocalizedString(@"Unable to sign in to Jetpack. Please update your credentials try again.", @"")
@@ -147,7 +137,6 @@ static NSString *_lastAuthedName = nil;
                                                   cancelButtonTitle:NSLocalizedString(@"OK", @"")
                                                   otherButtonTitles:nil];
         [alertView show];
-        [alertView release];        
     }
 }
 
@@ -158,11 +147,11 @@ static NSString *_lastAuthedName = nil;
     UINavigationController *navController = nil;
     
     if ([blog isWPcom]) {
-        EditSiteViewController *controller = [[[EditSiteViewController alloc] initWithNibName:nil bundle:nil] autorelease];
+        EditSiteViewController *controller = [[EditSiteViewController alloc] initWithNibName:nil bundle:nil];
         controller.delegate = self;
         controller.isCancellable = YES;
         controller.blog = self.blog;
-        navController = [[[UINavigationController alloc] initWithRootViewController:controller] autorelease];
+        navController = [[UINavigationController alloc] initWithRootViewController:controller];
     } else {
         JetpackSettingsViewController *controller = [[JetpackSettingsViewController alloc] initWithNibName:nil bundle:nil];
         controller.delegate = self;
@@ -189,10 +178,7 @@ static NSString *_lastAuthedName = nil;
         return;
     }
     
-    if (blog) {
-        [blog release]; blog = nil;
-    }
-    blog = [aBlog retain];
+    blog = aBlog;
     if (blog) {
         [FileLogger log:@"Loading Stats for the following blog: %@", [blog url]];
         if (![blog isWPcom]) {
@@ -225,7 +211,7 @@ static NSString *_lastAuthedName = nil;
         if ([username length] > 0 && [password length] > 0) {
             // try to validate
             if (!jetpackAuthUtil) {
-                self.jetpackAuthUtil = [[[JetpackAuthUtil alloc] init] autorelease];
+                self.jetpackAuthUtil = [[JetpackAuthUtil alloc] init];
                 jetpackAuthUtil.delegate = self;
             }
             [jetpackAuthUtil validateCredentialsForBlog:blog withUsername:username andPassword:password];
@@ -249,7 +235,6 @@ static NSString *_lastAuthedName = nil;
                                                   cancelButtonTitle:NSLocalizedString(@"OK", @"OK") 
                                                   otherButtonTitles:nil, nil];
         [alertView show];
-        [alertView release];
         
         [self promptForCredentials];
     }
@@ -295,7 +280,7 @@ static NSString *_lastAuthedName = nil;
         return;
     }
 
-    NSMutableURLRequest *mRequest = [[[NSMutableURLRequest alloc] init] autorelease];
+    NSMutableURLRequest *mRequest = [[NSMutableURLRequest alloc] init];
     NSString *requestBody = [NSString stringWithFormat:@"log=%@&pwd=%@&redirect_to=http://wordpress.com",
                              [username stringByUrlEncoding],
                              [password stringByUrlEncoding]];
@@ -312,7 +297,7 @@ static NSString *_lastAuthedName = nil;
     [self clearCookies]; 
     [[self class] setLastAuthedName:nil];
     
-    self.authRequest = [[[AFHTTPRequestOperation alloc] initWithRequest:mRequest] autorelease];
+    self.authRequest = [[AFHTTPRequestOperation alloc] initWithRequest:mRequest];
     
     [authRequest setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
         
@@ -347,7 +332,6 @@ static NSString *_lastAuthedName = nil;
                                                       cancelButtonTitle:NSLocalizedString(@"Cancel", nil)
                                                       otherButtonTitles:NSLocalizedString(@"Retry?", nil), nil];
             [alertView show];
-            [alertView release];
         }
     }];
     
@@ -382,7 +366,7 @@ static NSString *_lastAuthedName = nil;
     }
     
     NSString *pathStr = [NSString stringWithFormat:@"http://wordpress.com/?no-chrome#!/my-stats/?blog=%@&unit=1", [blog blogID]];
-    NSMutableURLRequest *mRequest = [[[NSMutableURLRequest alloc] init] autorelease];
+    NSMutableURLRequest *mRequest = [[NSMutableURLRequest alloc] init];
     [mRequest setURL:[NSURL URLWithString:pathStr]];
     [mRequest addValue:@"*/*" forHTTPHeaderField:@"Accept"];
     NSString *userAgent = [NSString stringWithFormat:@"%@",[webView stringByEvaluatingJavaScriptFromString:@"navigator.userAgent"]];
@@ -440,9 +424,9 @@ static NSString *_lastAuthedName = nil;
             [query rangeOfString:@"no-chrome"].location == NSNotFound) {
             WPWebViewController *controller;
             if (IS_IPAD) {
-                controller = [[[WPWebViewController alloc] initWithNibName:@"WPWebViewController-iPad" bundle:nil] autorelease];
+                controller = [[WPWebViewController alloc] initWithNibName:@"WPWebViewController-iPad" bundle:nil];
             } else {
-                controller = [[[WPWebViewController alloc] initWithNibName:@"WPWebViewController" bundle:nil] autorelease];
+                controller = [[WPWebViewController alloc] initWithNibName:@"WPWebViewController" bundle:nil];
             }
             [controller setUrl:request.URL];
             [self.panelNavigationController pushViewController:controller fromViewController:self animated:YES];
@@ -489,7 +473,6 @@ static NSString *_lastAuthedName = nil;
                                               cancelButtonTitle:NSLocalizedString(@"OK", nil)
                                               otherButtonTitles: nil];
     [alertView show];
-    [alertView release];
 }
 
 
@@ -501,7 +484,6 @@ static NSString *_lastAuthedName = nil;
                                               cancelButtonTitle:NSLocalizedString(@"OK", nil)
                                               otherButtonTitles:nil];
     [alertView show];
-    [alertView release];
 }
 
 @end

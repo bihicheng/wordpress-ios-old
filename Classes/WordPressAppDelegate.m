@@ -53,21 +53,6 @@ static WordPressAppDelegate *wordPressApp = NULL;
 #pragma mark -
 #pragma mark LifeCycle Methods
 
-- (void)dealloc {
-	[postID release];
-    [navigationController release];
-    [window release];
-	[currentBlog release];
-    [passwordTextField release];
-    [wpcomReachability release];
-    [internetReachability release];
-    [facebook release];
-    [panelNavigationController release];
-    [managedObjectModel_ release];
-    [managedObjectContext_ release];
-    
-    [super dealloc];
-}
 
 - (id)init {
     [FileLogger log:@"%@ %@", self, NSStringFromSelector(_cmd)];
@@ -91,7 +76,6 @@ static WordPressAppDelegate *wordPressApp = NULL;
         
         NSDictionary *dictionary = [[NSDictionary alloc] initWithObjectsAndKeys: defaultUA, @"UserAgent", nil];
         [[NSUserDefaults standardUserDefaults] registerDefaults:dictionary];
-        [dictionary release];
 
         self.wpcomAvailable = YES; //Set the wpcom availability to YES to avoid issues with lazy reachibility notifier        
         
@@ -225,7 +209,7 @@ static WordPressAppDelegate *wordPressApp = NULL;
         facebook.expirationDate = [defaults objectForKey:kFacebookExpirationDateKey];
     }
     
-    SidebarViewController *sidebarViewController = [[[SidebarViewController alloc] init] autorelease];
+    SidebarViewController *sidebarViewController = [[SidebarViewController alloc] init];
     
     CGRect bounds = [[UIScreen mainScreen] bounds];
     [window setFrame:bounds];
@@ -295,7 +279,7 @@ static WordPressAppDelegate *wordPressApp = NULL;
         NSLog(@"Application launched with URL: %@", URLString);
         if ([[url host] isEqualToString:@"oauth"]) {
             NSDictionary *params = [[url query] dictionaryFromQueryString];
-            oauthCallback = [[params objectForKey:@"callback"] retain];
+            oauthCallback = [params objectForKey:@"callback"];
             NSString *clientId = [params objectForKey:@"client_id"];
             NSString *redirectUrl = [params objectForKey:@"redirect_uri"];
             NSString *secret = [params objectForKey:@"secret"];
@@ -417,7 +401,6 @@ static WordPressAppDelegate *wordPressApp = NULL;
 						cancelButtonTitle:NSLocalizedString(@"Need Help?", @"'Need help?' button label, links off to the WP for iOS FAQ.")
 						otherButtonTitles:NSLocalizedString(@"OK", @"OK button label."), nil];
     [alert show];
-    [alert release];
 }
 
 - (void)showNotificationErrorAlert:(NSNotification *)notification {
@@ -490,7 +473,6 @@ static WordPressAppDelegate *wordPressApp = NULL;
 	labelPasswd.textColor = [UIColor whiteColor];
 	labelPasswd.text = NSLocalizedString(@"Please update your password:", @"If the password was lost, a popup asks the author to update their password, this is the popup's description.");
 	[customSizeAlert addSubview:labelPasswd];
-	[labelPasswd release];
 	
 	passwordTextField = [[UITextField alloc]  initWithFrame:CGRectMake(12.0, 82.0, 260.0, 29.0)]; 
 	[passwordTextField setBackgroundColor:[UIColor whiteColor]];
@@ -510,10 +492,8 @@ static WordPressAppDelegate *wordPressApp = NULL;
 	}
 	
 	[customSizeAlert show];
-	[customSizeAlert release];
 	
 	[passwordTextField becomeFirstResponder]; //this line should always be called on MainThread
-    [passwordTextField release];
 }
 
 - (void)showContentDetailViewController:(UIViewController *)viewController {
@@ -536,7 +516,6 @@ static WordPressAppDelegate *wordPressApp = NULL;
 		NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"dateModified" ascending:NO];  
 		NSArray *sortDescriptors = [NSArray arrayWithObject:sortDescriptor];  
 		[request setSortDescriptors:sortDescriptors];  
-		[sortDescriptor release];
 		NSPredicate *predicate = [NSPredicate predicateWithFormat:@"(uniqueID == %@)", uniqueID];
 		[request setPredicate:predicate];
 		NSError *error;  
@@ -555,8 +534,6 @@ static WordPressAppDelegate *wordPressApp = NULL;
 			exit(-1);
 		}
 		
-		[postsToDelete release];
-		[request release];
 	}
 }
 
@@ -693,11 +670,11 @@ static WordPressAppDelegate *wordPressApp = NULL;
 		}
 		
 		//if the app did not quit, show the alert to inform the users that the data have been deleted
-		UIAlertView *alert = [[[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error establishing database connection.", @"") 
+		UIAlertView *alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error establishing database connection.", @"") 
 														 message:NSLocalizedString(@"Please delete the app and reinstall.", @"") 
 														delegate:nil 
 											   cancelButtonTitle:NSLocalizedString(@"OK", @"") 
-											   otherButtonTitles:nil] autorelease];
+											   otherButtonTitles:nil];
 		[alert show];
     } else {
 		// If there are no blogs and blogs.archive still exists, force import of blogs
@@ -711,11 +688,9 @@ static WordPressAppDelegate *wordPressApp = NULL;
 
 			MigrateBlogsFromFiles *blogMigrator = [[MigrateBlogsFromFiles alloc] init];
 			[blogMigrator forceBlogsMigrationInContext:destMOC error:&error];
-			[blogMigrator release];
 			if (![destMOC save:&error]) {
 				WPFLog(@"Error saving blogs-only migration: %@", error);
 			}
-			[destMOC release];
 			[fileManager removeItemAtPath:blogsArchiveFilePath error:&error];
 		}
 	}
@@ -920,7 +895,6 @@ static WordPressAppDelegate *wordPressApp = NULL;
 	
 	//handle data coming back
 	// ** TODO @frsh: This needs to be completely redone with a custom helper class. ***
-	[statsData release];
 	statsData = [[NSMutableData alloc] init];
 	
 	NSMutableURLRequest *theRequest=[NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"http://api.wordpress.org/iphoneapp/update-check/1.0/"]
@@ -943,7 +917,7 @@ static WordPressAppDelegate *wordPressApp = NULL;
 	//NSString *htmlStr = [[[NSString alloc] initWithData:postBody encoding:NSUTF8StringEncoding] autorelease];
 	[theRequest setHTTPBody:postBody];
 	
-	NSURLConnection *conn = [[[NSURLConnection alloc] initWithRequest:theRequest delegate:self] autorelease];
+	NSURLConnection *conn = [[NSURLConnection alloc] initWithRequest:theRequest delegate:self];
 	if(conn){
 		// This is just to keep Analyzer from complaining.
 	}
@@ -956,9 +930,9 @@ static WordPressAppDelegate *wordPressApp = NULL;
 
 - (void)cleanUnusedMediaFileFromTmpDir {
     [FileLogger log:@"%@ %@", self, NSStringFromSelector(_cmd)];
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    @autoreleasepool {
 
-	NSMutableArray *mediaToKeep = [NSMutableArray array];
+		NSMutableArray *mediaToKeep = [NSMutableArray array];
 
     NSError *error = nil;
     NSManagedObjectContext *context = [[NSManagedObjectContext alloc] init];
@@ -969,45 +943,43 @@ static WordPressAppDelegate *wordPressApp = NULL;
     NSPredicate *predicate = [NSPredicate predicateWithFormat:@"ANY posts.blog != NULL"];
     [fetchRequest setPredicate:predicate];
     NSArray *mediaObjectsToKeep = [context executeFetchRequest:fetchRequest error:&error];
-    [context release];
-    [fetchRequest release];
     if (error != nil) {
         WPFLog(@"Error cleaning up tmp files: %@", [error localizedDescription]);
     }
-	//get a references to media files linked in a post
+		//get a references to media files linked in a post
     NSLog(@"%i media items to check for cleanup", [mediaObjectsToKeep count]);
-	for (Media *media in mediaObjectsToKeep) {
+		for (Media *media in mediaObjectsToKeep) {
 //        [mediaToKeep addObject:media.localURL];
-	}
+		}
 
-	//searches for jpg files within the app temp file
-	NSFileManager *fileManager = [NSFileManager defaultManager];
-	NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-	NSString *documentsDirectory = [paths objectAtIndex:0];
-	NSArray *contentsOfDir = [fileManager contentsOfDirectoryAtPath:documentsDirectory error:NULL];
+		//searches for jpg files within the app temp file
+		NSFileManager *fileManager = [NSFileManager defaultManager];
+		NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+		NSString *documentsDirectory = [paths objectAtIndex:0];
+		NSArray *contentsOfDir = [fileManager contentsOfDirectoryAtPath:documentsDirectory error:NULL];
     
     NSError *regexpError = NULL;
     NSRegularExpression *jpeg = [NSRegularExpression regularExpressionWithPattern:@".jpg$" options:NSRegularExpressionCaseInsensitive error:&regexpError];
 
-	for (NSString *currentPath in contentsOfDir)
-		if([jpeg numberOfMatchesInString:currentPath options:0 range:NSMakeRange(0, [currentPath length])] > 0) {
-			NSString *filepath = [documentsDirectory stringByAppendingPathComponent:currentPath];
+		for (NSString *currentPath in contentsOfDir)
+			if([jpeg numberOfMatchesInString:currentPath options:0 range:NSMakeRange(0, [currentPath length])] > 0) {
+				NSString *filepath = [documentsDirectory stringByAppendingPathComponent:currentPath];
 
-			BOOL keep = NO;
-			//if the file is not referenced in any post we can delete it
-			for (NSString *currentMediaToKeepPath in mediaToKeep) {
-				if([currentMediaToKeepPath isEqualToString:filepath]) {
-					keep = YES;
-					break;
+				BOOL keep = NO;
+				//if the file is not referenced in any post we can delete it
+				for (NSString *currentMediaToKeepPath in mediaToKeep) {
+					if([currentMediaToKeepPath isEqualToString:filepath]) {
+						keep = YES;
+						break;
+					}
+				}
+
+				if(keep == NO) {
+					[fileManager removeItemAtPath:filepath error:NULL];
 				}
 			}
 
-			if(keep == NO) {
-				[fileManager removeItemAtPath:filepath error:NULL];
-			}
-		}
-
-	[pool release];
+	}
 }
 
 #pragma mark - Push Notification delegate
@@ -1063,8 +1035,7 @@ static WordPressAppDelegate *wordPressApp = NULL;
                 }
                 if (message && [message length] > 0) {
                     [self setAlertRunning:YES];
-                    [lastNotificationInfo release];
-                    lastNotificationInfo = [userInfo retain];
+                    lastNotificationInfo = userInfo;
                     UIAlertView *alert = nil;
                     if ([userInfo objectForKey:@"blog_id"] && [userInfo objectForKey:@"comment_id"]) {
                         alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"New comment", @"Popup title for a new push notification (shown when you receive a push notification and the phone is not locked).")
@@ -1082,7 +1053,6 @@ static WordPressAppDelegate *wordPressApp = NULL;
                     }
                     alert.tag = kNotificationNewComment;
                     [alert show];
-                    [alert release];
                     [self sendPushNotificationBlogsList];
                 }
             }
@@ -1143,7 +1113,6 @@ static WordPressAppDelegate *wordPressApp = NULL;
                     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                         WPFLog(@"Couldn't register token: %@", [error localizedDescription]);
                     }];
-            [api release];
         } 
 	}
 }
@@ -1182,7 +1151,6 @@ static WordPressAppDelegate *wordPressApp = NULL;
                     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                         WPFLog(@"Couldn't unregister token: %@", [error localizedDescription]);
                     }];
-            [api release];
         } 
 	}
 }
@@ -1236,11 +1204,6 @@ static WordPressAppDelegate *wordPressApp = NULL;
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                 WPFLog(@"Failed registering blogs list: %@", [error localizedDescription]);
             }];
-    [api release];
-    
-    [fetchRequest release];
-    [sortDescriptor release]; sortDescriptor = nil;
-    [sortDescriptors release]; sortDescriptors = nil;
 }
 
 - (void)openNotificationScreenWithOptions:(NSDictionary *)remoteNotif {
@@ -1268,11 +1231,10 @@ static WordPressAppDelegate *wordPressApp = NULL;
 							   cancelButtonTitle:NSLocalizedString(@"OK", @"OK button label (shown in popups).")
 							   otherButtonTitles:nil];
 	[errorAlert show];
-	[errorAlert release];
 }
 
 - (void) connectionDidFinishLoading: (NSURLConnection*) connection {
-	NSString *statsDataString = [[[NSString alloc] initWithData:statsData encoding:NSUTF8StringEncoding] autorelease];
+	NSString *statsDataString = [[NSString alloc] initWithData:statsData encoding:NSUTF8StringEncoding];
     statsDataString = [[statsDataString componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]] objectAtIndex:0];
 	NSString *appversion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
     if ([statsDataString compare:appversion options:NSNumericSearch] > 0) {
@@ -1284,7 +1246,6 @@ static WordPressAppDelegate *wordPressApp = NULL;
                                               otherButtonTitles:NSLocalizedString(@"Update Now", @"Popup 'update' button to highlight a new version of the app being available. The button takes you to the app store on the device, and should be actionable."), nil];
         alert.tag = 102;
         [alert show];
-        [alert release];
     }
 }
 
@@ -1345,19 +1306,19 @@ static WordPressAppDelegate *wordPressApp = NULL;
     } else if (alertView.tag == kNotificationNewComment) {
         if (buttonIndex == 1) {
             [self openNotificationScreenWithOptions:lastNotificationInfo];
-            [lastNotificationInfo release]; lastNotificationInfo = nil;
+             lastNotificationInfo = nil;
         }
 	} else { 
 		//Need Help Alert
 		switch(buttonIndex) {
 			case 0: {
-				HelpViewController *helpViewController = [[[HelpViewController alloc] init] autorelease];
+				HelpViewController *helpViewController = [[HelpViewController alloc] init];
 				
 				if (IS_IPAD && self.panelNavigationController.modalViewController) {
 					[self.navigationController pushViewController:helpViewController animated:YES];
 				}
 				else {
-                    UINavigationController *aNavigationController = [[[UINavigationController alloc] initWithRootViewController:helpViewController] autorelease];
+                    UINavigationController *aNavigationController = [[UINavigationController alloc] initWithRootViewController:helpViewController];
 					if (IS_IPAD) {
 						aNavigationController.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
 						aNavigationController.modalPresentationStyle = UIModalPresentationFormSheet;
@@ -1387,17 +1348,16 @@ static WordPressAppDelegate *wordPressApp = NULL;
 }
 - (void)controller:(WPComOAuthController *)controller didAuthenticateWithToken:(NSString *)token blog:(NSString *)blogUrl {
     NSLog(@"OAuth successful. Token %@ Blog %@", token, blogUrl);
-    NSString *encodedToken = (NSString *)CFURLCreateStringByAddingPercentEscapes(
+    NSString *encodedToken = (NSString *)CFBridgingRelease(CFURLCreateStringByAddingPercentEscapes(
                                                                                  NULL,
                                                                                  (CFStringRef)token,
                                                                                  NULL,
                                                                                  (CFStringRef)@"!*'();:@&=+$,/?%#[]",
-                                                                                 kCFStringEncodingUTF8 );
+                                                                                 kCFStringEncodingUTF8 ));
     NSURL *callback = [NSURL URLWithString:[NSString stringWithFormat:@"%@://wordpress-sso?token=%@&blog=%@",
                                             oauthCallback,
                                             encodedToken,
                                             [blogUrl stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]];
-    [encodedToken release];
     NSLog(@"Launching %@", callback);
     [[UIApplication sharedApplication] openURL:callback];
 }

@@ -21,14 +21,7 @@
 
     [self.webView stopLoading];
     self.webView.delegate = nil;
-    self.webView = nil;
-    self.lastWebViewRefreshDate = nil;
     self.webBridge.delegate = nil;
-    self.webBridge = nil;
-    [_refreshHeaderView release]; _refreshHeaderView = nil;
-    
-    [super dealloc];
-    
 }
 
 
@@ -79,7 +72,7 @@
     self.webView.delegate = nil;
     self.webView = nil;
     
-    [_refreshHeaderView release]; _refreshHeaderView = nil;
+     _refreshHeaderView = nil;
 }
 
 

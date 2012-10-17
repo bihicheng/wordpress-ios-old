@@ -373,7 +373,7 @@
 		837614FD120A7FB2005CCB33 /* XMLRPCResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 837614F5120A7FB2005CCB33 /* XMLRPCResponse.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		8383178812270E980047B476 /* PostMediaViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8383178612270E980047B476 /* PostMediaViewController.m */; };
 		8383178912270E980047B476 /* PostMediaViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 8383178712270E980047B476 /* PostMediaViewController.xib */; };
-		8388FABA1269585C00304909 /* CTidy.m in Sources */ = {isa = PBXBuildFile; fileRef = 8388FAB91269585C00304909 /* CTidy.m */; };
+		8388FABA1269585C00304909 /* CTidy.m in Sources */ = {isa = PBXBuildFile; fileRef = 8388FAB91269585C00304909 /* CTidy.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		8388FABF1269586400304909 /* CXMLDocument_CreationExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 8388FABC1269586400304909 /* CXMLDocument_CreationExtensions.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		8388FAC01269586400304909 /* CXMLNode_CreationExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 8388FABE1269586400304909 /* CXMLNode_CreationExtensions.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		8388FAD4126958E700304909 /* CXMLDocument_PrivateExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 8388FAC2126958E700304909 /* CXMLDocument_PrivateExtensions.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
@@ -470,14 +470,14 @@
 		E128566515103A3600406BC9 /* keyboardButtoniPadHighlighted@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E128566315103A3600406BC9 /* keyboardButtoniPadHighlighted@2x.png */; };
 		E12AAB621513C4B6009D025B /* WPComOAuthController.m in Sources */ = {isa = PBXBuildFile; fileRef = E12AAB611513C4B6009D025B /* WPComOAuthController.m */; };
 		E12AAB641513C4CA009D025B /* WPComOAuthController.xib in Resources */ = {isa = PBXBuildFile; fileRef = E12AAB631513C4CA009D025B /* WPComOAuthController.xib */; };
-		E12F55F214A1F22D0060A510 /* NSStringAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = E12F55E914A1F22D0060A510 /* NSStringAdditions.m */; };
+		E12F55F214A1F22D0060A510 /* NSStringAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = E12F55E914A1F22D0060A510 /* NSStringAdditions.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		E12F55F314A1F22D0060A510 /* XMLRPCConnectionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = E12F55EC14A1F22D0060A510 /* XMLRPCConnectionManager.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		E12F55F414A1F22D0060A510 /* XMLRPCEventBasedParser.m in Sources */ = {isa = PBXBuildFile; fileRef = E12F55EE14A1F22D0060A510 /* XMLRPCEventBasedParser.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		E12F55F514A1F22D0060A510 /* XMLRPCEventBasedParserDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = E12F55F014A1F22D0060A510 /* XMLRPCEventBasedParserDelegate.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		E12F95B9155820A40067A653 /* NSObject+BlockObservation.m in Sources */ = {isa = PBXBuildFile; fileRef = E12F95B8155820A40067A653 /* NSObject+BlockObservation.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		E131D08912C8C9160056BAB9 /* AbstractPost.m in Sources */ = {isa = PBXBuildFile; fileRef = E131D08812C8C9160056BAB9 /* AbstractPost.m */; };
 		E131D20A15D5263A009DFB23 /* CHANGELOG.md in Resources */ = {isa = PBXBuildFile; fileRef = E131D20615D5263A009DFB23 /* CHANGELOG.md */; };
-		E131D20B15D5263A009DFB23 /* JSONKit.m in Sources */ = {isa = PBXBuildFile; fileRef = E131D20815D5263A009DFB23 /* JSONKit.m */; };
+		E131D20B15D5263A009DFB23 /* JSONKit.m in Sources */ = {isa = PBXBuildFile; fileRef = E131D20815D5263A009DFB23 /* JSONKit.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		E131D20C15D5263A009DFB23 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = E131D20915D5263A009DFB23 /* README.md */; };
 		E1330B0F151275300010018D /* AFAuthenticationAlertView.m in Sources */ = {isa = PBXBuildFile; fileRef = E1330B0E151275300010018D /* AFAuthenticationAlertView.m */; };
 		E13EB7A5157D230000885780 /* WordPressComApi.m in Sources */ = {isa = PBXBuildFile; fileRef = E13EB7A4157D230000885780 /* WordPressComApi.m */; };
@@ -553,6 +553,7 @@
 		E19F29C412B8BC22008FF660 /* tmbstr.c in Sources */ = {isa = PBXBuildFile; fileRef = E19F29A612B8BC22008FF660 /* tmbstr.c */; };
 		E19F29C512B8BC22008FF660 /* utf8.c in Sources */ = {isa = PBXBuildFile; fileRef = E19F29A812B8BC22008FF660 /* utf8.c */; };
 		E19F29C612B8BC22008FF660 /* win32tc.c in Sources */ = {isa = PBXBuildFile; fileRef = E19F29AB12B8BC22008FF660 /* win32tc.c */; };
+		E1A0FAE7162F11CF0063B098 /* UIDevice+WordPressIdentifier.m in Sources */ = {isa = PBXBuildFile; fileRef = E1A0FAE6162F11CE0063B098 /* UIDevice+WordPressIdentifier.m */; };
 		E1A386C814DB05C300954CF8 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E1A386C714DB05C300954CF8 /* AVFoundation.framework */; };
 		E1A386CA14DB05F700954CF8 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E1A386C914DB05F700954CF8 /* CoreMedia.framework */; };
 		E1A386CB14DB063800954CF8 /* MediaPlayer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 83FB4D3E122C38F700DB9506 /* MediaPlayer.framework */; };
@@ -604,7 +605,7 @@
 		FD4500D11580DF3600F2B0E6 /* UIColor+Helpers.m in Sources */ = {isa = PBXBuildFile; fileRef = FD4500D01580DF3500F2B0E6 /* UIColor+Helpers.m */; };
 		FD75DDAD15B021C80043F12C /* UIViewController+Rotation.m in Sources */ = {isa = PBXBuildFile; fileRef = FD75DDAC15B021C80043F12C /* UIViewController+Rotation.m */; };
 		FD9A948C12FAEA2300438F94 /* DateUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = FD9A948B12FAEA2300438F94 /* DateUtils.m */; };
-		FDA68C2014AC6CB800151896 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = FDA68C1F14AC6CB800151896 /* Reachability.m */; };
+		FDA68C2014AC6CB800151896 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = FDA68C1F14AC6CB800151896 /* Reachability.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		FDC528AC157E551100A3FD91 /* SidebarTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = FDC528AB157E551000A3FD91 /* SidebarTableViewCell.m */; };
 /* End PBXBuildFile section */
 
@@ -1370,6 +1371,8 @@
 		E19F29AA12B8BC22008FF660 /* version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = version.h; sourceTree = "<group>"; };
 		E19F29AB12B8BC22008FF660 /* win32tc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = win32tc.c; sourceTree = "<group>"; };
 		E19F29AC12B8BC22008FF660 /* win32tc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = win32tc.h; sourceTree = "<group>"; };
+		E1A0FAE5162F11CE0063B098 /* UIDevice+WordPressIdentifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIDevice+WordPressIdentifier.h"; sourceTree = "<group>"; };
+		E1A0FAE6162F11CE0063B098 /* UIDevice+WordPressIdentifier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIDevice+WordPressIdentifier.m"; sourceTree = "<group>"; };
 		E1A386C714DB05C300954CF8 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		E1A386C914DB05F700954CF8 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		E1A38C921581879D00439E55 /* WPTableViewControllerSubclass.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WPTableViewControllerSubclass.h; sourceTree = "<group>"; };
@@ -2475,6 +2478,8 @@
 				5DC3A44C1610B9BC00A890BE /* UINavigationController+Rotation.m */,
 				5D97C2F115CAF8D8009B44DD /* UINavigationController+KeyboardFix.h */,
 				5D97C2F215CAF8D8009B44DD /* UINavigationController+KeyboardFix.m */,
+				E1A0FAE5162F11CE0063B098 /* UIDevice+WordPressIdentifier.h */,
+				E1A0FAE6162F11CE0063B098 /* UIDevice+WordPressIdentifier.m */,
 			);
 			name = Categories;
 			sourceTree = "<group>";
@@ -3556,6 +3561,7 @@
 				5D3E334E15EEBB6B005FC6F2 /* ReachabilityUtils.m in Sources */,
 				5D87E10C15F5120C0012C595 /* SettingsPageViewController.m in Sources */,
 				5DC3A44D1610B9BC00A890BE /* UINavigationController+Rotation.m in Sources */,
+				E1A0FAE7162F11CF0063B098 /* UIDevice+WordPressIdentifier.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3621,6 +3627,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN__ARC_BRIDGE_CAST_NONARC = NO;
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -3657,6 +3664,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN__ARC_BRIDGE_CAST_NONARC = NO;
 				CODE_SIGN_IDENTITY = "iPhone Distribution: Automattic, Inc.";
 				COPY_PHASE_STRIP = YES;
@@ -3711,6 +3719,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN__ARC_BRIDGE_CAST_NONARC = NO;
 				COPY_PHASE_STRIP = YES;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -3764,6 +3773,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN__ARC_BRIDGE_CAST_NONARC = NO;
 				CODE_SIGN_ENTITLEMENTS = Entitlements.plist;
 				COPY_PHASE_STRIP = YES;
@@ -3847,6 +3857,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/WordPress.app/WordPress";
+				CLANG_ENABLE_OBJC_ARC = YES;
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
@@ -3879,6 +3890,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/WordPress.app/WordPress";
+				CLANG_ENABLE_OBJC_ARC = YES;
 				COPY_PHASE_STRIP = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
@@ -3904,6 +3916,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/WordPress.app/WordPress";
+				CLANG_ENABLE_OBJC_ARC = YES;
 				COPY_PHASE_STRIP = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
@@ -3929,6 +3942,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/WordPress.app/WordPress";
+				CLANG_ENABLE_OBJC_ARC = YES;
 				COPY_PHASE_STRIP = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",

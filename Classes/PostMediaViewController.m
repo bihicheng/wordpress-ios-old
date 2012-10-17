@@ -38,33 +38,13 @@
 
 - (void)dealloc {
     picker.delegate = nil;
-	[picker release];
-	[customSizeAlert release];
-	[uniqueID release];
     addPopover.delegate = nil;
-	[addPopover release];
-	[bottomToolbar release];
-	[videoPressCheckBlogURL release];
-	[currentUpload release];
-	[blogURL release];
-	[postID release];
-	[messageLabel release];
-	[currentVideo release];
-	[currentImage release];
-	[currentImageMetadata release];
-	[spinner release];
-	[table release];
-	[addMediaButton release];
-	[photos release];
-	[videos release];
-    [currentActionSheet release];
     
-	[super dealloc];
 }
 
 - (void)initObjects {
-	self.photos = [[[NSMutableArray alloc] init] autorelease];
-	self.videos = [[[NSMutableArray alloc] init] autorelease];
+	self.photos = [[NSMutableArray alloc] init];
+	self.videos = [[NSMutableArray alloc] init];
 	picker = [[UIImagePickerController alloc] init];
 	picker.delegate = self;
 	picker.allowsEditing = NO;
@@ -150,7 +130,7 @@
     
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     if (cell == nil) {
-        cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier] autorelease];
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier];
 	}
     
     [self configureCell:cell atIndexPath:indexPath];
@@ -257,7 +237,6 @@
 		}
         else
             [self.postDetailViewController.navigationController pushViewController:mediaView animated:YES];
-        [mediaView release];
     }
 
 	[tableView deselectRowAtIndexPath:indexPath animated:YES];
@@ -284,7 +263,7 @@
 //Hide unnecessary row dividers. See http://ios.trac.wordpress.org/ticket/1264
 - (UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section {
     if ([self numberOfSectionsInTableView:tableView] == (section+1)){
-        return [[UIView new] autorelease];
+        return [UIView new];
     }
     return nil;
 }
@@ -325,7 +304,6 @@
 		[uploadAlert addButtonWithTitle:NSLocalizedString(@"Yes", @"")];
 		uploadAlert.tag = 101;
 		[uploadAlert show];
-		[uploadAlert release];		
 		return;
 	}
 	
@@ -340,7 +318,6 @@
     WordPressAppDelegate *appDelegate = (WordPressAppDelegate*)[[UIApplication sharedApplication] delegate];
     [appDelegate setAlertRunning:YES];
 	
-    [actionSheet release];
 }
 
 - (IBAction)showPhotoPickerActionSheet:(id)sender {
@@ -386,7 +363,6 @@
     WordPressAppDelegate *appDelegate = (WordPressAppDelegate*)[[UIApplication sharedApplication] delegate];
     [appDelegate setAlertRunning:YES];
 	
-    [actionSheet release];
 }
 
 
@@ -395,7 +371,6 @@
 
 - (void)popoverControllerDidDismissPopover:(UIPopoverController *)popoverController {
     addPopover.delegate = nil;
-    [addPopover release];
     addPopover = nil;
 }
 
@@ -681,7 +656,6 @@
 														  destructiveButtonTitle:nil 
 															   otherButtonTitles:NSLocalizedString(@"Portrait", @""), NSLocalizedString(@"Landscape", @""), nil];
 	[orientationActionSheet showInView:postDetailViewController.view];
-	[orientationActionSheet release];
 }
 
 - (void)showResizeActionSheet {
@@ -746,7 +720,6 @@
 		}
 		
         [resizeActionSheet showInView:postDetailViewController.view];
-		[resizeActionSheet release];
 	}
 }
 
@@ -799,7 +772,6 @@
 		labelWidth.textColor = [UIColor whiteColor];
 		labelWidth.text = NSLocalizedString(@"Width", @"");
 		[customSizeAlert addSubview:labelWidth];
-		[labelWidth release];
 		
 		textWidth = [[UITextField alloc] initWithFrame:CGRectMake(12.0, 80.0, 125.0, 25.0)]; 
 		[textWidth setBackgroundColor:[UIColor whiteColor]];
@@ -821,7 +793,6 @@
 		labelHeight.textColor = [UIColor whiteColor];
 		labelHeight.text = NSLocalizedString(@"Height", @"");
 		[customSizeAlert addSubview:labelHeight];
-		[labelHeight release];
 		
 		textHeight = [[UITextField alloc] initWithFrame:CGRectMake(145.0, 80.0, 125.0, 25.0)]; 
 		[textHeight setBackgroundColor:[UIColor whiteColor]];
@@ -915,7 +886,7 @@
 
 - (void)imagePickerController:(UIImagePickerController *)thePicker didFinishPickingMediaWithInfo:(NSDictionary *)info {
 	if([[info valueForKey:@"UIImagePickerControllerMediaType"] isEqualToString:@"public.movie"]) {
-		self.currentVideo = [[info mutableCopy] autorelease];
+		self.currentVideo = [info mutableCopy];
 		if(self.didChangeOrientationDuringRecord == YES)
 			[self showOrientationChangedActionSheet];
 		else if(self.isLibraryMedia == NO)
@@ -927,7 +898,7 @@
 		UIImage *image = [info valueForKey:@"UIImagePickerControllerOriginalImage"];
 		if (thePicker.sourceType == UIImagePickerControllerSourceTypeCamera)
 			UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil);
-		currentImage = [image retain];
+		currentImage = image;
 		
 		//UIImagePickerControllerReferenceURL = "assets-library://asset/asset.JPG?id=1000000050&ext=JPG").
         NSURL *assetURL = nil;
@@ -972,7 +943,6 @@
                 [mutableMetadata removeObjectForKey:@"Orientation"];
                 [mutableMetadata removeObjectForKey:@"{TIFF}"];
                 self.currentImageMetadata = mutableMetadata;
-                [mutableMetadata release];
             }
         }
 		
@@ -981,7 +951,6 @@
 		NSNumber *resizePreference = [NSNumber numberWithInt:-1];
 		if([[NSUserDefaults standardUserDefaults] objectForKey:@"media_resize_preference"] != nil)
 			resizePreference = [nf numberFromString:[[NSUserDefaults standardUserDefaults] objectForKey:@"media_resize_preference"]];
-		[nf release];
 		
 		switch ([resizePreference intValue]) {
 			case 0:
@@ -1070,11 +1039,10 @@
 					   CGImageSourceRef  source ;
 					   source = CGImageSourceCreateWithData((__bridge CFDataRef)imageJPEG, NULL);
 					   
-                       NSDictionary *metadata = (NSDictionary *) CGImageSourceCopyPropertiesAtIndex(source,0,NULL);
+                       NSDictionary *metadata = (NSDictionary *) CFBridgingRelease(CGImageSourceCopyPropertiesAtIndex(source,0,NULL));
                        
                        //make the metadata dictionary mutable so we can remove properties to it
                        NSMutableDictionary *metadataAsMutable = [metadata mutableCopy];
-                       [metadata release];
 
 					   if(!self.postDetailViewController.apost.blog.geolocationEnabled) {
 						   //we should remove the GPS info if the blog has the geolocation set to off
@@ -1085,7 +1053,6 @@
                        [metadataAsMutable removeObjectForKey:@"Orientation"];
                        [metadataAsMutable removeObjectForKey:@"{TIFF}"];
                        self.currentImageMetadata = [NSDictionary dictionaryWithDictionary:metadataAsMutable];
-                       [metadataAsMutable release];
 					   
 					   CFRelease(source);
 				   }
@@ -1093,7 +1060,6 @@
 					  WPLog(@"can't get asset %@: %@", url, err);
 					  self.currentImageMetadata = nil;
 				  }];
-    [assetslibrary release];
 }
 
 - (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker {
@@ -1109,15 +1075,14 @@
 	
 	[self.currentVideo setValue:[NSNumber numberWithInt:currentOrientation] forKey:@"orientation"];
 	NSString *tempVideoPath = [(NSURL *)[currentVideo valueForKey:UIImagePickerControllerMediaURL] absoluteString];
-	tempVideoPath = [[tempVideoPath substringFromIndex:16] retain];
+	tempVideoPath = [tempVideoPath substringFromIndex:16];
 	if (UIVideoAtPathIsCompatibleWithSavedPhotosAlbum(tempVideoPath)) {
 		UISaveVideoAtPathToSavedPhotosAlbum(tempVideoPath, self, @selector(video:didFinishSavingWithError:contextInfo:), nil);
 	}
-	[tempVideoPath release];	
 }
 
 - (void)processLibraryVideo {
-	NSURL *videoURL = [[currentVideo valueForKey:UIImagePickerControllerMediaURL] retain];
+	NSURL *videoURL = [currentVideo valueForKey:UIImagePickerControllerMediaURL];
 	if(videoURL == nil)
 		videoURL = [currentVideo valueForKey:UIImagePickerControllerReferenceURL];
 	
@@ -1131,13 +1096,11 @@
 		[self.currentVideo setValue:[NSNumber numberWithInt:currentOrientation] forKey:@"orientation"];
 		
 		// Determine the video's library path
-		NSString *videoPath = [[[videoURL absoluteString] substringFromIndex:16] retain];
+		NSString *videoPath = [[videoURL absoluteString] substringFromIndex:16];
 		[self useVideo:videoPath];
 		self.currentVideo = nil;
 		self.isLibraryMedia = NO;
-		[videoPath release];
 	}
-	[videoURL release];
 }
 
 - (void)video:(NSString *)videoPath didFinishSavingWithError:(NSError *)error contextInfo:(NSString *)contextInfo {
@@ -1305,7 +1268,7 @@
             
             if(destination) {                
                 //add the image contained in the image source to the destination, copying the old metadata
-                CGImageDestinationAddImageFromSource(destination,source,0, (CFDictionaryRef) self.currentImageMetadata);
+                CGImageDestinationAddImageFromSource(destination,source,0, (__bridge CFDictionaryRef) self.currentImageMetadata);
                 
                 //tell the destination to write the image data and metadata into our data object.
                 //It will return false if something goes wrong
@@ -1380,8 +1343,6 @@
     else
         [postDetailViewController switchToMedia];
 	
-	[formatter release];
-    [imageMedia release];
 }
 
 - (void)useVideo:(NSString *)videoURL {
@@ -1392,10 +1353,10 @@
 	NSTimeInterval duration = 0.0;
     NSURL *contentURL = [NSURL fileURLWithPath:videoURL];
 
-    AVURLAsset *asset = [[[AVURLAsset alloc] initWithURL:contentURL
+    AVURLAsset *asset = [[AVURLAsset alloc] initWithURL:contentURL
                                                  options:[NSDictionary dictionaryWithObjectsAndKeys:
                                                           [NSNumber numberWithBool:YES], AVURLAssetPreferPreciseDurationAndTimingKey,
-                                                          nil]] autorelease];
+                                                          nil]];
     if (asset) {
         duration = CMTimeGetSeconds(asset.duration);
         AVAssetImageGenerator *imageGenerator = [[AVAssetImageGenerator alloc] initWithAsset:asset];
@@ -1411,7 +1372,6 @@
             // Do something interesting with the image.
             CGImageRelease(halfWayImage);
         }
-        [imageGenerator release];
     }
 
 	UIImage *videoThumbnail = [self generateThumbnailFromImage:thumbnail andSize:CGSizeMake(75, 75)];
@@ -1421,8 +1381,8 @@
 	[formatter setDateFormat:@"yyyyMMdd-HHmmss"];	NSFileManager *fileManager = [NSFileManager defaultManager];
 	NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
 	NSString *documentsDirectory = [paths objectAtIndex:0];
-	NSString *filename = [[NSString stringWithFormat:@"%@.mov", [formatter stringFromDate:[NSDate date]]] retain];
-	NSString *filepath = [[documentsDirectory stringByAppendingPathComponent:filename] retain];
+	NSString *filename = [NSString stringWithFormat:@"%@.mov", [formatter stringFromDate:[NSDate date]]];
+	NSString *filepath = [documentsDirectory stringByAppendingPathComponent:filename];
 	
 	if(videoURL != nil) {
 		// Copy the video from temp to blog directory
@@ -1467,7 +1427,6 @@
 		
 		//switch to the attachment view if we're not already there 
 		[postDetailViewController switchToMedia];
-		[videoMedia release];
 	}
 	else {
 		UIAlertView *videoAlert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error Copying Video", @"") 
@@ -1476,11 +1435,7 @@
 												   cancelButtonTitle:NSLocalizedString(@"OK", @"") 
 												   otherButtonTitles:nil];
 		[videoAlert show];
-		[videoAlert release];
 	}
-    [formatter release];
-    [filename release];
-    [filepath release];
 }
 
 - (BOOL)isDeviceSupportVideo {
@@ -1526,66 +1481,64 @@
 }
 
 - (void)checkVideoPressEnabled {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	@autoreleasepool {
 	
-	if(self.isCheckingVideoCapability == NO) {
-		self.isCheckingVideoCapability = YES;
-		self.videoPressCheckBlogURL = postDetailViewController.apost.blog.url;
-		
-		@try {
-			//removed the check on the blog URL. we should be able to use VideoPress on self hosted blog
-			//NSRange textRange = [[self.videoPressCheckBlogURL lowercaseString] rangeOfString:@"wordpress.com"];
-			//if(textRange.location != NSNotFound)
-			//{
-			NSError *error = nil;
-			NSString *username = self.postDetailViewController.apost.blog.username;
-			NSString *password = [SFHFKeychainUtils getPasswordForUsername:username
-															andServiceName:self.postDetailViewController.apost.blog.hostURL
-																	 error:&error];
+		if(self.isCheckingVideoCapability == NO) {
+			self.isCheckingVideoCapability = YES;
+			self.videoPressCheckBlogURL = postDetailViewController.apost.blog.url;
 			
-			NSArray *args = [NSArray arrayWithObjects:self.postDetailViewController.apost.blog.blogID,username, password, nil];
-			
-			NSMutableDictionary *xmlrpcParams = [[NSMutableDictionary alloc] init];
-			[xmlrpcParams setObject:self.postDetailViewController.apost.blog.xmlrpc forKey:kURL];
-			[xmlrpcParams setObject:@"wpcom.getFeatures" forKey:kMETHOD];
-			[xmlrpcParams setObject:args forKey:kMETHODARGS];
-			
-			XMLRPCRequest *request = [[XMLRPCRequest alloc] initWithURL:[NSURL URLWithString:[xmlrpcParams valueForKey:kURL]]];
-			[request setMethod:[xmlrpcParams valueForKey:kMETHOD] withParameters:[xmlrpcParams valueForKey:kMETHODARGS]];
-			[xmlrpcParams release];
-			
-			XMLRPCResponse *response = [XMLRPCConnection sendSynchronousXMLRPCRequest:request error:nil];
-			if ([response isKindOfClass:[NSError class]]) {
-				self.videoEnabled = YES;
-				self.isCheckingVideoCapability = NO;
-				WPLog(@"checkVideoEnabled failed: %@", response);
-				return;
-			}
-			if(([response.object isKindOfClass:[NSDictionary class]] == YES) && ([response.object objectForKey:@"videopress_enabled"] != nil))
-				self.videoEnabled = [[response.object objectForKey:@"videopress_enabled"] boolValue];
-			else if(([response.object isKindOfClass:[NSDictionary class]] == YES) && ([response.object objectForKey:@"faultCode"] != nil)) {
-				if([[response.object objectForKey:@"faultCode"] intValue] == -32601) //server error. requested method wpcom.getFeatures does not exist.
+			@try {
+				//removed the check on the blog URL. we should be able to use VideoPress on self hosted blog
+				//NSRange textRange = [[self.videoPressCheckBlogURL lowercaseString] rangeOfString:@"wordpress.com"];
+				//if(textRange.location != NSNotFound)
+				//{
+				NSError *error = nil;
+				NSString *username = self.postDetailViewController.apost.blog.username;
+				NSString *password = [SFHFKeychainUtils getPasswordForUsername:username
+																andServiceName:self.postDetailViewController.apost.blog.hostURL
+																		 error:&error];
+				
+				NSArray *args = [NSArray arrayWithObjects:self.postDetailViewController.apost.blog.blogID,username, password, nil];
+				
+				NSMutableDictionary *xmlrpcParams = [[NSMutableDictionary alloc] init];
+				[xmlrpcParams setObject:self.postDetailViewController.apost.blog.xmlrpc forKey:kURL];
+				[xmlrpcParams setObject:@"wpcom.getFeatures" forKey:kMETHOD];
+				[xmlrpcParams setObject:args forKey:kMETHODARGS];
+				
+				XMLRPCRequest *request = [[XMLRPCRequest alloc] initWithURL:[NSURL URLWithString:[xmlrpcParams valueForKey:kURL]]];
+				[request setMethod:[xmlrpcParams valueForKey:kMETHOD] withParameters:[xmlrpcParams valueForKey:kMETHODARGS]];
+				
+				XMLRPCResponse *response = [XMLRPCConnection sendSynchronousXMLRPCRequest:request error:nil];
+				if ([response isKindOfClass:[NSError class]]) {
 					self.videoEnabled = YES;
+					self.isCheckingVideoCapability = NO;
+					WPLog(@"checkVideoEnabled failed: %@", response);
+					return;
+				}
+				if(([response.object isKindOfClass:[NSDictionary class]] == YES) && ([response.object objectForKey:@"videopress_enabled"] != nil))
+					self.videoEnabled = [[response.object objectForKey:@"videopress_enabled"] boolValue];
+				else if(([response.object isKindOfClass:[NSDictionary class]] == YES) && ([response.object objectForKey:@"faultCode"] != nil)) {
+					if([[response.object objectForKey:@"faultCode"] intValue] == -32601) //server error. requested method wpcom.getFeatures does not exist.
+						self.videoEnabled = YES;
+					else
+						self.videoEnabled = NO;
+				}
 				else
-					self.videoEnabled = NO;
+					self.videoEnabled = YES;
+				
+				//}
+				//	else
+				//		self.videoEnabled = YES;
 			}
-			else
+			@catch (NSException * e) {
 				self.videoEnabled = YES;
-			
-			[request release];
-			//}
-			//	else
-			//		self.videoEnabled = YES;
+			}
+			@finally {
+				self.isCheckingVideoCapability = NO;
+			}
 		}
-		@catch (NSException * e) {
-			self.videoEnabled = YES;
-		}
-		@finally {
-			self.isCheckingVideoCapability = NO;
-		}
-	}
 	
-	[pool release];
+	}
 }
 
 #pragma mark -
@@ -1613,9 +1566,8 @@
                                                                  self.postDetailViewController.apost.postID]];
     resultsController.delegate = self;
     
-    [fetchRequest release];
-    [sortDescriptorDate release]; sortDescriptorDate = nil;
-    [sortDescriptors release]; sortDescriptors = nil;
+     sortDescriptorDate = nil;
+     sortDescriptors = nil;
     
     NSError *error = nil;
     if (![resultsController performFetch:&error]) {

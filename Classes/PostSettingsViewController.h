@@ -23,7 +23,7 @@
     IBOutlet UITextField *passwordTextField;
     IBOutlet UILabel *publishOnLabel;
     IBOutlet UILabel *publishOnDateLabel;
-    EditPostViewController *postDetailViewController;
+    EditPostViewController *__weak postDetailViewController;
     NSArray *statusList;
     NSArray *visibilityList;
     NSArray *formatsList;
@@ -51,8 +51,8 @@
     IBOutlet UIActivityIndicatorView *featuredImageSpinner;
 }
 
-@property (nonatomic, assign) EditPostViewController *postDetailViewController;
-@property (nonatomic, retain) IBOutlet UITableViewCell *postFormatTableViewCell;
+@property (nonatomic, weak) EditPostViewController *postDetailViewController;
+@property (nonatomic, strong) IBOutlet UITableViewCell *postFormatTableViewCell;
 
 - (void)reloadData;
 - (void)endEditingAction:(id)sender;
