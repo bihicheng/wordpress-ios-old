@@ -197,6 +197,7 @@
 
 #pragma mark - UIWebViewDelegate
 
+#if !__has_feature(objc_arc)
 - (void)webViewDidStartLoad:(UIWebView *)webView {
     // attempted work around for #1347
     [self.webView.delegate retain];
@@ -212,6 +213,7 @@
     // attempted work around for #1347
     [self.webView.delegate release];
 }
+#endif
 
 - (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType
 {

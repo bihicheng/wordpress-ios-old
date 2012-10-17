@@ -19,7 +19,7 @@
 		28AD73600D9D9599002E5188 /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 28AD735F0D9D9599002E5188 /* MainWindow.xib */; };
 		2906F812110CDA8900169D56 /* EditCommentViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2906F810110CDA8900169D56 /* EditCommentViewController.m */; };
 		2906F813110CDA8900169D56 /* EditCommentViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 2906F811110CDA8900169D56 /* EditCommentViewController.xib */; };
-		292CED001027259000BD407D /* SFHFKeychainUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 292CECFF1027259000BD407D /* SFHFKeychainUtils.m */; };
+		292CED001027259000BD407D /* SFHFKeychainUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 292CECFF1027259000BD407D /* SFHFKeychainUtils.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		296526FE105810E100597FA3 /* NSString+Helpers.m in Sources */ = {isa = PBXBuildFile; fileRef = 296526FD105810E100597FA3 /* NSString+Helpers.m */; };
 		296890780FE971DC00770264 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 296890770FE971DC00770264 /* Security.framework */; };
 		2994EEEE10DF0FCD008336A6 /* ReplyToCommentViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2994EEEC10DF0FCD008336A6 /* ReplyToCommentViewController.m */; };
@@ -367,24 +367,24 @@
 		8370D1BD11FA6295009D650F /* AddSiteViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8370D1BB11FA6295009D650F /* AddSiteViewController.m */; };
 		8370D1BE11FA6295009D650F /* AddSiteViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 8370D1BC11FA6295009D650F /* AddSiteViewController.xib */; };
 		837576C511305C67002EAA27 /* hasLocation.png in Resources */ = {isa = PBXBuildFile; fileRef = 837576C211305C67002EAA27 /* hasLocation.png */; };
-		837614F8120A7FB2005CCB33 /* XMLRPCConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = 837614EB120A7FB2005CCB33 /* XMLRPCConnection.m */; };
-		837614FA120A7FB2005CCB33 /* XMLRPCEncoder.m in Sources */ = {isa = PBXBuildFile; fileRef = 837614EF120A7FB2005CCB33 /* XMLRPCEncoder.m */; };
-		837614FC120A7FB2005CCB33 /* XMLRPCRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 837614F3120A7FB2005CCB33 /* XMLRPCRequest.m */; };
-		837614FD120A7FB2005CCB33 /* XMLRPCResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 837614F5120A7FB2005CCB33 /* XMLRPCResponse.m */; };
+		837614F8120A7FB2005CCB33 /* XMLRPCConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = 837614EB120A7FB2005CCB33 /* XMLRPCConnection.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		837614FA120A7FB2005CCB33 /* XMLRPCEncoder.m in Sources */ = {isa = PBXBuildFile; fileRef = 837614EF120A7FB2005CCB33 /* XMLRPCEncoder.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		837614FC120A7FB2005CCB33 /* XMLRPCRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 837614F3120A7FB2005CCB33 /* XMLRPCRequest.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		837614FD120A7FB2005CCB33 /* XMLRPCResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 837614F5120A7FB2005CCB33 /* XMLRPCResponse.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		8383178812270E980047B476 /* PostMediaViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8383178612270E980047B476 /* PostMediaViewController.m */; };
 		8383178912270E980047B476 /* PostMediaViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 8383178712270E980047B476 /* PostMediaViewController.xib */; };
 		8388FABA1269585C00304909 /* CTidy.m in Sources */ = {isa = PBXBuildFile; fileRef = 8388FAB91269585C00304909 /* CTidy.m */; };
-		8388FABF1269586400304909 /* CXMLDocument_CreationExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 8388FABC1269586400304909 /* CXMLDocument_CreationExtensions.m */; };
-		8388FAC01269586400304909 /* CXMLNode_CreationExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 8388FABE1269586400304909 /* CXMLNode_CreationExtensions.m */; };
-		8388FAD4126958E700304909 /* CXMLDocument_PrivateExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 8388FAC2126958E700304909 /* CXMLDocument_PrivateExtensions.m */; };
-		8388FAD5126958E700304909 /* CXMLDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = 8388FAC4126958E700304909 /* CXMLDocument.m */; };
-		8388FAD6126958E700304909 /* CXMLElement_CreationExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 8388FAC6126958E700304909 /* CXMLElement_CreationExtensions.m */; };
-		8388FAD7126958E700304909 /* CXMLElement_ElementTreeExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 8388FAC8126958E700304909 /* CXMLElement_ElementTreeExtensions.m */; };
-		8388FAD8126958E700304909 /* CXMLElement.m in Sources */ = {isa = PBXBuildFile; fileRef = 8388FACA126958E700304909 /* CXMLElement.m */; };
-		8388FAD9126958E700304909 /* CXMLNamespaceNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 8388FACC126958E700304909 /* CXMLNamespaceNode.m */; };
-		8388FADA126958E700304909 /* CXMLNode_PrivateExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 8388FACE126958E700304909 /* CXMLNode_PrivateExtensions.m */; };
-		8388FADB126958E700304909 /* CXMLNode_XPathExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 8388FAD0126958E700304909 /* CXMLNode_XPathExtensions.m */; };
-		8388FADC126958E700304909 /* CXMLNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 8388FAD2126958E700304909 /* CXMLNode.m */; };
+		8388FABF1269586400304909 /* CXMLDocument_CreationExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 8388FABC1269586400304909 /* CXMLDocument_CreationExtensions.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		8388FAC01269586400304909 /* CXMLNode_CreationExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 8388FABE1269586400304909 /* CXMLNode_CreationExtensions.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		8388FAD4126958E700304909 /* CXMLDocument_PrivateExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 8388FAC2126958E700304909 /* CXMLDocument_PrivateExtensions.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		8388FAD5126958E700304909 /* CXMLDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = 8388FAC4126958E700304909 /* CXMLDocument.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		8388FAD6126958E700304909 /* CXMLElement_CreationExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 8388FAC6126958E700304909 /* CXMLElement_CreationExtensions.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		8388FAD7126958E700304909 /* CXMLElement_ElementTreeExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 8388FAC8126958E700304909 /* CXMLElement_ElementTreeExtensions.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		8388FAD8126958E700304909 /* CXMLElement.m in Sources */ = {isa = PBXBuildFile; fileRef = 8388FACA126958E700304909 /* CXMLElement.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		8388FAD9126958E700304909 /* CXMLNamespaceNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 8388FACC126958E700304909 /* CXMLNamespaceNode.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		8388FADA126958E700304909 /* CXMLNode_PrivateExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 8388FACE126958E700304909 /* CXMLNode_PrivateExtensions.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		8388FADB126958E700304909 /* CXMLNode_XPathExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 8388FAD0126958E700304909 /* CXMLNode_XPathExtensions.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		8388FADC126958E700304909 /* CXMLNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 8388FAD2126958E700304909 /* CXMLNode.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		838A477911AF9BE9004FA306 /* UIDevice-Hardware.m in Sources */ = {isa = PBXBuildFile; fileRef = 838A477811AF9BE9004FA306 /* UIDevice-Hardware.m */; };
 		838C672E1210C3C300B09CA3 /* Post.m in Sources */ = {isa = PBXBuildFile; fileRef = 838C672D1210C3C300B09CA3 /* Post.m */; };
 		8398EE3411ACE206000FE6E0 /* WebSignupViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8398EE3111ACE206000FE6E0 /* WebSignupViewController.m */; };
@@ -424,7 +424,7 @@
 		ACC156CC0E10E67600D6E1A0 /* EditPostViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = ACC156CB0E10E67600D6E1A0 /* EditPostViewController.m */; };
 		C533CF350E6D3ADA000C3DE8 /* CommentsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C533CF340E6D3ADA000C3DE8 /* CommentsViewController.m */; };
 		C55A90D90E8026CD00E1C9B5 /* WPSegmentedSelectionTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C55A90D80E8026CD00E1C9B5 /* WPSegmentedSelectionTableViewController.m */; };
-		C59D3D4B0E6410D300AA591D /* NSString+XMLExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = C59D3D4A0E6410D300AA591D /* NSString+XMLExtensions.m */; };
+		C59D3D4B0E6410D300AA591D /* NSString+XMLExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = C59D3D4A0E6410D300AA591D /* NSString+XMLExtensions.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		C5C272DF0E7EC00A0034AA46 /* uncheck.png in Resources */ = {isa = PBXBuildFile; fileRef = C5C272DE0E7EC00A0034AA46 /* uncheck.png */; };
 		C5C272E10E7EC00F0034AA46 /* check.png in Resources */ = {isa = PBXBuildFile; fileRef = C5C272E00E7EC00F0034AA46 /* check.png */; };
 		CC0E20AE15B87DA100D3468B /* WPWebBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = CC0E20AD15B87DA100D3468B /* WPWebBridge.m */; };
@@ -471,10 +471,10 @@
 		E12AAB621513C4B6009D025B /* WPComOAuthController.m in Sources */ = {isa = PBXBuildFile; fileRef = E12AAB611513C4B6009D025B /* WPComOAuthController.m */; };
 		E12AAB641513C4CA009D025B /* WPComOAuthController.xib in Resources */ = {isa = PBXBuildFile; fileRef = E12AAB631513C4CA009D025B /* WPComOAuthController.xib */; };
 		E12F55F214A1F22D0060A510 /* NSStringAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = E12F55E914A1F22D0060A510 /* NSStringAdditions.m */; };
-		E12F55F314A1F22D0060A510 /* XMLRPCConnectionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = E12F55EC14A1F22D0060A510 /* XMLRPCConnectionManager.m */; };
-		E12F55F414A1F22D0060A510 /* XMLRPCEventBasedParser.m in Sources */ = {isa = PBXBuildFile; fileRef = E12F55EE14A1F22D0060A510 /* XMLRPCEventBasedParser.m */; };
-		E12F55F514A1F22D0060A510 /* XMLRPCEventBasedParserDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = E12F55F014A1F22D0060A510 /* XMLRPCEventBasedParserDelegate.m */; };
-		E12F95B9155820A40067A653 /* NSObject+BlockObservation.m in Sources */ = {isa = PBXBuildFile; fileRef = E12F95B8155820A40067A653 /* NSObject+BlockObservation.m */; };
+		E12F55F314A1F22D0060A510 /* XMLRPCConnectionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = E12F55EC14A1F22D0060A510 /* XMLRPCConnectionManager.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		E12F55F414A1F22D0060A510 /* XMLRPCEventBasedParser.m in Sources */ = {isa = PBXBuildFile; fileRef = E12F55EE14A1F22D0060A510 /* XMLRPCEventBasedParser.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		E12F55F514A1F22D0060A510 /* XMLRPCEventBasedParserDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = E12F55F014A1F22D0060A510 /* XMLRPCEventBasedParserDelegate.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		E12F95B9155820A40067A653 /* NSObject+BlockObservation.m in Sources */ = {isa = PBXBuildFile; fileRef = E12F95B8155820A40067A653 /* NSObject+BlockObservation.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		E131D08912C8C9160056BAB9 /* AbstractPost.m in Sources */ = {isa = PBXBuildFile; fileRef = E131D08812C8C9160056BAB9 /* AbstractPost.m */; };
 		E131D20A15D5263A009DFB23 /* CHANGELOG.md in Resources */ = {isa = PBXBuildFile; fileRef = E131D20615D5263A009DFB23 /* CHANGELOG.md */; };
 		E131D20B15D5263A009DFB23 /* JSONKit.m in Sources */ = {isa = PBXBuildFile; fileRef = E131D20815D5263A009DFB23 /* JSONKit.m */; };
@@ -490,7 +490,6 @@
 		E13FA0FB134C8DDC007DCDD0 /* BlogSelectorViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = E13FA0FA134C8DDC007DCDD0 /* BlogSelectorViewController.m */; };
 		E140E623151229DD00900F0C /* AFHTTPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = E140E61E151229DD00900F0C /* AFHTTPClient.m */; };
 		E140E624151229DD00900F0C /* AFJSONRequestOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = E140E620151229DD00900F0C /* AFJSONRequestOperation.m */; };
-		E140E625151229DD00900F0C /* AFJSONUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = E140E622151229DD00900F0C /* AFJSONUtilities.m */; };
 		E1472B9713EFF9FF00987A40 /* left.png in Resources */ = {isa = PBXBuildFile; fileRef = E1472B9313EFF9FF00987A40 /* left.png */; };
 		E1472B9813EFF9FF00987A40 /* left@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E1472B9413EFF9FF00987A40 /* left@2x.png */; };
 		E1472B9913EFF9FF00987A40 /* right.png in Resources */ = {isa = PBXBuildFile; fileRef = E1472B9513EFF9FF00987A40 /* right.png */; };
@@ -516,13 +515,13 @@
 		E17078FD130A95B600F30433 /* WordPress-1-2.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = E17078FC130A95B600F30433 /* WordPress-1-2.xcmappingmodel */; };
 		E1745A9A15AF49C000A3F7C5 /* UIViewController+Styled.m in Sources */ = {isa = PBXBuildFile; fileRef = E1745A9915AF49C000A3F7C5 /* UIViewController+Styled.m */; };
 		E1745AA715AF4E5900A3F7C5 /* UIBarButtonItem+Styled.m in Sources */ = {isa = PBXBuildFile; fileRef = E1745AA615AF4E5900A3F7C5 /* UIBarButtonItem+Styled.m */; };
-		E1764A36149A12BA0012F7E4 /* XMLRPCDataCleaner.m in Sources */ = {isa = PBXBuildFile; fileRef = E1764A35149A12BA0012F7E4 /* XMLRPCDataCleaner.m */; };
+		E1764A36149A12BA0012F7E4 /* XMLRPCDataCleaner.m in Sources */ = {isa = PBXBuildFile; fileRef = E1764A35149A12BA0012F7E4 /* XMLRPCDataCleaner.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		E177087913AAAD5800EA6C72 /* keyboardButton~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = E177087813AAAD5800EA6C72 /* keyboardButton~ipad.png */; };
 		E177087E13AAC19700EA6C72 /* redo~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = E177087A13AAC19700EA6C72 /* redo~ipad.png */; };
 		E177087F13AAC19700EA6C72 /* redoDisabled~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = E177087B13AAC19700EA6C72 /* redoDisabled~ipad.png */; };
 		E177088013AAC19700EA6C72 /* undo~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = E177087C13AAC19700EA6C72 /* undo~ipad.png */; };
 		E177088113AAC19700EA6C72 /* undoDisabled~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = E177087D13AAC19700EA6C72 /* undoDisabled~ipad.png */; };
-		E17BE248134F39FE00165C3D /* NSURL+IDN.m in Sources */ = {isa = PBXBuildFile; fileRef = E17BE247134F39FE00165C3D /* NSURL+IDN.m */; };
+		E17BE248134F39FE00165C3D /* NSURL+IDN.m in Sources */ = {isa = PBXBuildFile; fileRef = E17BE247134F39FE00165C3D /* NSURL+IDN.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		E17BE261134F5E4D00165C3D /* QuickPicturePreviewView.m in Sources */ = {isa = PBXBuildFile; fileRef = E17BE260134F5E4D00165C3D /* QuickPicturePreviewView.m */; };
 		E18165FD14E4428B006CE885 /* loader.html in Resources */ = {isa = PBXBuildFile; fileRef = E18165FC14E4428B006CE885 /* loader.html */; };
 		E1895ECC1607272B007E6DD5 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E1895ECB1607272B007E6DD5 /* Default-568h@2x.png */; };
@@ -1252,8 +1251,6 @@
 		E140E61E151229DD00900F0C /* AFHTTPClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFHTTPClient.m; sourceTree = "<group>"; };
 		E140E61F151229DD00900F0C /* AFJSONRequestOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFJSONRequestOperation.h; sourceTree = "<group>"; };
 		E140E620151229DD00900F0C /* AFJSONRequestOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFJSONRequestOperation.m; sourceTree = "<group>"; };
-		E140E621151229DD00900F0C /* AFJSONUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFJSONUtilities.h; sourceTree = "<group>"; };
-		E140E622151229DD00900F0C /* AFJSONUtilities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFJSONUtilities.m; sourceTree = "<group>"; };
 		E1457202135EC85700C7BAD2 /* sv */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sv; path = sv.lproj/Localizable.strings; sourceTree = "<group>"; };
 		E1472B9313EFF9FF00987A40 /* left.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = left.png; sourceTree = "<group>"; };
 		E1472B9413EFF9FF00987A40 /* left@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "left@2x.png"; sourceTree = "<group>"; };
@@ -2828,8 +2825,6 @@
 				E140E61E151229DD00900F0C /* AFHTTPClient.m */,
 				E140E61F151229DD00900F0C /* AFJSONRequestOperation.h */,
 				E140E620151229DD00900F0C /* AFJSONRequestOperation.m */,
-				E140E621151229DD00900F0C /* AFJSONUtilities.h */,
-				E140E622151229DD00900F0C /* AFJSONUtilities.m */,
 				E1F807FA14641AC700726BC7 /* AFHTTPRequestOperation.h */,
 				E1F807FB14641AC700726BC7 /* AFHTTPRequestOperation.m */,
 				E1F807FE14641AC700726BC7 /* AFImageRequestOperation.h */,
@@ -3527,7 +3522,6 @@
 				E13F23C314FE84600081D9CC /* NSMutableDictionary+Helpers.m in Sources */,
 				E140E623151229DD00900F0C /* AFHTTPClient.m in Sources */,
 				E140E624151229DD00900F0C /* AFJSONRequestOperation.m in Sources */,
-				E140E625151229DD00900F0C /* AFJSONUtilities.m in Sources */,
 				E1330B0F151275300010018D /* AFAuthenticationAlertView.m in Sources */,
 				E12AAB621513C4B6009D025B /* WPComOAuthController.m in Sources */,
 				E114D79A153D85A800984182 /* WPError.m in Sources */,

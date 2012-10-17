@@ -244,6 +244,7 @@
 	
 	switch (indexPath.section) {
 		case 0:
+        {
 			cell.textLabel.textAlignment = UITextAlignmentLeft;
 			
 			NSDictionary *blog = [usersBlogs objectAtIndex:indexPath.row];
@@ -258,14 +259,19 @@
             NSURL *blogURL = [NSURL URLWithString:[blog valueForKey:@"url"]];
             [cell.imageView setImageWithBlavatarUrl:[blogURL host] isWPcom:isWPcom];
 			break;
-        case 1: 
-            cell.textLabel.textAlignment = UITextAlignmentCenter; 
+        }
+        case 1:
+        {
+            cell.textLabel.textAlignment = UITextAlignmentCenter;
             cell.accessoryType = UITableViewCellAccessoryNone; 
             cell.textLabel.text = NSLocalizedString(@"Sign Out", @"");
             cell.imageView.image = nil;
             break;
+        }
 		default:
+        {
 			break;
+        }
 	}
 	
     return cell;

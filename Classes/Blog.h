@@ -7,6 +7,7 @@
 
 #import <Foundation/Foundation.h>
 #import <CommonCrypto/CommonDigest.h>
+#import <CoreData/CoreData.h>
 #import "AFXMLRPCClient.h"
 #import "Reachability.h"
 

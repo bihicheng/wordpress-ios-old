@@ -7,8 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
-
-@class AFHTTPRequestOperation;
+#import "AFHTTPRequestOperation.h"
 
 typedef void (^AFXMLRPCRequestOperationSuccessBlock)(AFHTTPRequestOperation *operation, id responseObject);
 typedef void (^AFXMLRPCRequestOperationFailureBlock)(AFHTTPRequestOperation *operation, NSError *error);

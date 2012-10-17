@@ -985,32 +985,44 @@
 		
 		switch ([resizePreference intValue]) {
 			case 0:
+            {
                 // Dispatch async to detal with a rare bug presenting the actionsheet after a memory warning when the
                 // view has been recreated.
                 dispatch_async(dispatch_get_main_queue(), ^{
                     [self showResizeActionSheet];
                 });
 				break;
+            }
 			case 1:
+            {
 				[self useImage:[self resizeImage:currentImage toSize:kResizeSmall]];
 				break;
+            }
 			case 2:
+            {
 				[self useImage:[self resizeImage:currentImage toSize:kResizeMedium]];
 				break;
+            }
 			case 3:
+            {
 				[self useImage:[self resizeImage:currentImage toSize:kResizeLarge]];
 				break;
+            }
 			case 4:
+            {
 				//[self useImage:currentImage];
                 [self useImage:[self resizeImage:currentImage toSize:kResizeOriginal]];
 				break;
+            }
 			default:
+            {
                 // Dispatch async to detal with a rare bug presenting the actionsheet after a memory warning when the
                 // view has been recreated.
                 dispatch_async(dispatch_get_main_queue(), ^{
                     [self showResizeActionSheet];
                 });
 				break;
+            }
 		}
 		
 		if(!IS_IPAD) {
@@ -1056,7 +1068,7 @@
 														  freeWhenDone:YES];  // YES means free malloc'ed buf that backs this when deallocated
 					   
 					   CGImageSourceRef  source ;
-					   source = CGImageSourceCreateWithData((CFDataRef)imageJPEG, NULL);
+					   source = CGImageSourceCreateWithData((__bridge CFDataRef)imageJPEG, NULL);
 					   
                        NSDictionary *metadata = (NSDictionary *) CGImageSourceCopyPropertiesAtIndex(source,0,NULL);
                        
@@ -1099,7 +1111,7 @@
 	NSString *tempVideoPath = [(NSURL *)[currentVideo valueForKey:UIImagePickerControllerMediaURL] absoluteString];
 	tempVideoPath = [[tempVideoPath substringFromIndex:16] retain];
 	if (UIVideoAtPathIsCompatibleWithSavedPhotosAlbum(tempVideoPath)) {
-		UISaveVideoAtPathToSavedPhotosAlbum(tempVideoPath, self, @selector(video:didFinishSavingWithError:contextInfo:), tempVideoPath);
+		UISaveVideoAtPathToSavedPhotosAlbum(tempVideoPath, self, @selector(video:didFinishSavingWithError:contextInfo:), nil);
 	}
 	[tempVideoPath release];	
 }
@@ -1286,10 +1298,10 @@
         //this will be the data CGImageDestinationRef will write into
         NSMutableData *dest_data = [NSMutableData data];
 
-		source = CGImageSourceCreateWithData((CFDataRef)imageData, NULL);
+		source = CGImageSourceCreateWithData((__bridge CFDataRef)imageData, NULL);
         if (source) {
             CFStringRef UTI = CGImageSourceGetType(source); //this is the type of image (e.g., public.jpeg)
-            destination = CGImageDestinationCreateWithData((CFMutableDataRef)dest_data,UTI,1,NULL);
+            destination = CGImageDestinationCreateWithData((__bridge CFMutableDataRef)dest_data,UTI,1,NULL);
             
             if(destination) {                
                 //add the image contained in the image source to the destination, copying the old metadata

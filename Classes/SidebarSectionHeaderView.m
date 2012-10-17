@@ -241,7 +241,7 @@ CGFloat const BadgeHeight = 24.f;
         startColor = [[UIColor colorWithWhite:0.6f alpha:0.3f] CGColor];
         endColor = [[UIColor colorWithWhite:0.6f alpha:0.f] CGColor];
     }
-    gradient.colors = [NSArray arrayWithObjects:(id)startColor, (id)endColor, nil];
+    gradient.colors = [NSArray arrayWithObjects:CFBridgingRelease(startColor), CFBridgingRelease(endColor), nil];
 }
 
 - (void)dealloc {

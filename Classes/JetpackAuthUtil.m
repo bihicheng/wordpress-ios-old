@@ -10,6 +10,7 @@
 #import "Blog.h"
 #import "SFHFKeychainUtils.h"
 #import "AFHTTPClient.h"
+#import "AFXMLRequestOperation.h"
 
 @interface JetpackAuthUtil() <NSXMLParserDelegate> {
     NSMutableString *currentNode;

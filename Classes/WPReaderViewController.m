@@ -455,7 +455,10 @@ NSString *const WPReaderViewControllerDisplayedFriendFinder = @"displayed friend
     NSMutableURLRequest* request = [[[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:statsURL  ]] autorelease];
     WordPressAppDelegate *appDelegate = (WordPressAppDelegate *)[[UIApplication sharedApplication] delegate]; 
     [request setValue:[appDelegate applicationUserAgent] forHTTPHeaderField:@"User-Agent"];
-    [[[NSURLConnection alloc] initWithRequest:request delegate:nil] autorelease];
+    @autoreleasepool {
+        NSURLConnection *conn = [[NSURLConnection alloc] initWithRequest:request delegate:nil];
+        [conn start];
+    }
 }
 
 #pragma mark - UIWebViewDelegate

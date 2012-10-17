@@ -441,6 +441,7 @@
 - (UITableViewCell*) getGeolactionCellWithIndexPath: (NSIndexPath*)indexPath {
     switch (indexPath.row) {
         case 0: // Add/update location
+        {
             if (addGeotagTableViewCell == nil) {
                 NSArray *topLevelObjects = [[NSBundle mainBundle] loadNibNamed:@"UITableViewActivityCell" owner:nil options:nil];
                 for(id currentObject in topLevelObjects) {
@@ -463,7 +464,9 @@
             }
             return addGeotagTableViewCell;
             break;
+        }
         case 1:
+        {
             NSLog(@"Reloading map");
             if (mapGeotagTableViewCell == nil)
                 mapGeotagTableViewCell = [[UITableViewCell alloc] initWithFrame:CGRectMake(0, 0, tableView.frame.size.width, 188)];
@@ -516,13 +519,16 @@
             
             return mapGeotagTableViewCell;
             break;
+        }
         case 2:
+        {
             if (removeGeotagTableViewCell == nil)
                 removeGeotagTableViewCell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"RemoveGeotag"];
             removeGeotagTableViewCell.textLabel.text = NSLocalizedString(@"Remove Location", @"Used for Geo-tagging posts by latitude and longitude. Basic form.");
             removeGeotagTableViewCell.textLabel.textAlignment = UITextAlignmentCenter;
             return removeGeotagTableViewCell;
             break;
+        }
     }
     return nil;
 }

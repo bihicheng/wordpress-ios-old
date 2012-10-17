@@ -57,6 +57,7 @@
     [super dealloc];
 }
 
+#if !__has_feature(objc_arc)
 //stackoverflow.com/questions/945082/uiwebview-in-multithread-viewcontroller
 - (oneway void)release {
     if (![NSThread isMainThread]) {
@@ -65,6 +66,7 @@
         [super release];
     }
 }
+#endif
 
 - (void)didReceiveMemoryWarning {
     [FileLogger log:@"%@ %@", self, NSStringFromSelector(_cmd)];
