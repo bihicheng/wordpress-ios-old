@@ -66,8 +66,7 @@
 		
 	[self initObjects];
 	self.videoEnabled = YES;
-    if([self.postDetailViewController.post.blog isWPcom])
-        [self performSelectorInBackground:@selector(checkVideoPressEnabled) withObject:nil];
+    [self checkVideoPressEnabled];
 	
     [self addNotifications];
 }
@@ -1481,64 +1480,18 @@
 }
 
 - (void)checkVideoPressEnabled {
-	@autoreleasepool {
-	
-		if(self.isCheckingVideoCapability == NO) {
-			self.isCheckingVideoCapability = YES;
-			self.videoPressCheckBlogURL = postDetailViewController.apost.blog.url;
-			
-			@try {
-				//removed the check on the blog URL. we should be able to use VideoPress on self hosted blog
-				//NSRange textRange = [[self.videoPressCheckBlogURL lowercaseString] rangeOfString:@"wordpress.com"];
-				//if(textRange.location != NSNotFound)
-				//{
-				NSError *error = nil;
-				NSString *username = self.postDetailViewController.apost.blog.username;
-				NSString *password = [SFHFKeychainUtils getPasswordForUsername:username
-																andServiceName:self.postDetailViewController.apost.blog.hostURL
-																		 error:&error];
-				
-				NSArray *args = [NSArray arrayWithObjects:self.postDetailViewController.apost.blog.blogID,username, password, nil];
-				
-				NSMutableDictionary *xmlrpcParams = [[NSMutableDictionary alloc] init];
-				[xmlrpcParams setObject:self.postDetailViewController.apost.blog.xmlrpc forKey:kURL];
-				[xmlrpcParams setObject:@"wpcom.getFeatures" forKey:kMETHOD];
-				[xmlrpcParams setObject:args forKey:kMETHODARGS];
-				
-				XMLRPCRequest *request = [[XMLRPCRequest alloc] initWithURL:[NSURL URLWithString:[xmlrpcParams valueForKey:kURL]]];
-				[request setMethod:[xmlrpcParams valueForKey:kMETHOD] withParameters:[xmlrpcParams valueForKey:kMETHODARGS]];
-				
-				XMLRPCResponse *response = [XMLRPCConnection sendSynchronousXMLRPCRequest:request error:nil];
-				if ([response isKindOfClass:[NSError class]]) {
-					self.videoEnabled = YES;
-					self.isCheckingVideoCapability = NO;
-					WPLog(@"checkVideoEnabled failed: %@", response);
-					return;
-				}
-				if(([response.object isKindOfClass:[NSDictionary class]] == YES) && ([response.object objectForKey:@"videopress_enabled"] != nil))
-					self.videoEnabled = [[response.object objectForKey:@"videopress_enabled"] boolValue];
-				else if(([response.object isKindOfClass:[NSDictionary class]] == YES) && ([response.object objectForKey:@"faultCode"] != nil)) {
-					if([[response.object objectForKey:@"faultCode"] intValue] == -32601) //server error. requested method wpcom.getFeatures does not exist.
-						self.videoEnabled = YES;
-					else
-						self.videoEnabled = NO;
-				}
-				else
-					self.videoEnabled = YES;
-				
-				//}
-				//	else
-				//		self.videoEnabled = YES;
-			}
-			@catch (NSException * e) {
-				self.videoEnabled = YES;
-			}
-			@finally {
-				self.isCheckingVideoCapability = NO;
-			}
-		}
-	
-	}
+    if(self.isCheckingVideoCapability)
+        return;
+
+    self.isCheckingVideoCapability = YES;
+    [postDetailViewController.apost.blog checkVideoPressEnabledWithSuccess:^(BOOL enabled) {
+        self.videoEnabled = enabled;
+        self.isCheckingVideoCapability = NO;
+    } failure:^(NSError *error) {
+        WPLog(@"checkVideoPressEnabled failed: %@", [error localizedDescription]);
+        self.videoEnabled = YES;
+        self.isCheckingVideoCapability = NO;
+    }];
 }
 
 #pragma mark -

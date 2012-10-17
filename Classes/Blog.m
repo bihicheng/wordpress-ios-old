@@ -526,6 +526,26 @@
             }];
 }
 
+- (void)checkVideoPressEnabledWithSuccess:(void (^)(BOOL enabled))success failure:(void (^)(NSError *error))failure {
+    if (!self.isWPcom) {
+        if (success) success(YES);
+        return;
+    }
+    NSArray *parameters = [self getXMLRPCArgsWithExtra:nil];
+    AFXMLRPCRequest *request = [self.api XMLRPCRequestWithMethod:@"wpcom.getFeatures" parameters:parameters];
+    AFXMLRPCRequestOperation *operation = [self.api XMLRPCRequestOperationWithRequest:request success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        BOOL videoEnabled = YES;
+        if(([responseObject isKindOfClass:[NSDictionary class]]) && ([responseObject objectForKey:@"videopress_enabled"] != nil))
+            videoEnabled = [[responseObject objectForKey:@"videopress_enabled"] boolValue];
+        else
+            videoEnabled = YES;
+
+        if (success) success(videoEnabled);
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        if (failure) failure(error);
+    }];
+    [self.api enqueueXMLRPCRequestOperation:operation];
+}
 
 #pragma mark - api accessor
 
