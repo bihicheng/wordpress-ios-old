@@ -10,13 +10,13 @@
 #import "Blog.h"
 #import "AbstractPost.h"
 
-typedef enum {
+typedef NS_ENUM(NSUInteger, MediaRemoteStatus) {
     MediaRemoteStatusPushing,    // Uploading post
     MediaRemoteStatusFailed,      // Upload failed
     MediaRemoteStatusLocal,       // Only local version
     MediaRemoteStatusSync,       // Post uploaded
     MediaRemoteStatusProcessing, // Intermediate status before uploading
-} MediaRemoteStatus;
+};
 
 @interface Media :  NSManagedObject  
 {
