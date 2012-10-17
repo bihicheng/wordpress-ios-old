@@ -113,6 +113,7 @@
     
     self.currentRequest = [[AFXMLRequestOperation alloc] initWithRequest:mRequest];
     
+    __weak JetpackAuthUtil *jetpackAuthUtil = self;
     [currentRequest setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
         self.currentRequest = nil;
         NSXMLParser *parser = (NSXMLParser *)responseObject;
@@ -125,10 +126,10 @@
         
         if(operation.response.statusCode == 401){
             // If we failed due to bad credentials...
-            [self.delegate jetpackAuthUtil:self errorValidatingCredentials:blog withError:NSLocalizedString(@"The WordPress.com username or password may be incorrect. Please check them and try again.", @"")];
+            [self.delegate jetpackAuthUtil:jetpackAuthUtil errorValidatingCredentials:jetpackAuthUtil.blog withError:NSLocalizedString(@"The WordPress.com username or password may be incorrect. Please check them and try again.", @"")];
         } else {
             // Some other server error.
-            [self.delegate jetpackAuthUtil:self errorValidatingCredentials:blog withError:NSLocalizedString(@"There was a server error while testing the credentials. Please try again.", @"")];            
+            [self.delegate jetpackAuthUtil:jetpackAuthUtil errorValidatingCredentials:jetpackAuthUtil.blog withError:NSLocalizedString(@"There was a server error while testing the credentials. Please try again.", @"")];
         }        
     }];
     

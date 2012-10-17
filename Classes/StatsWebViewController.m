@@ -29,6 +29,7 @@
 @property (nonatomic, strong) NSString *wporgBlogJetpackKey;
 @property (nonatomic, strong) AFHTTPRequestOperation *authRequest;
 @property (nonatomic, strong) JetpackAuthUtil *jetpackAuthUtil;
+@property (assign) BOOL authed;
 
 + (NSString *)lastAuthedName;
 + (void)setLastAuthedName:(NSString *)str;
@@ -47,6 +48,7 @@
 @synthesize wporgBlogJetpackKey;
 @synthesize authRequest;
 @synthesize jetpackAuthUtil;
+@synthesize authed = authed;
 
 static NSString *_lastAuthedName = nil;
 
@@ -299,6 +301,7 @@ static NSString *_lastAuthedName = nil;
     
     self.authRequest = [[AFHTTPRequestOperation alloc] initWithRequest:mRequest];
     
+    __weak StatsWebViewController *statsWebViewController = self;
     [authRequest setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
         
         // wordpress.com/wp-login.php currently returns http200 even when auth fails.
@@ -309,26 +312,26 @@ static NSString *_lastAuthedName = nil;
             if([cookie.name isEqualToString:@"wordpress_logged_in"]){
                 // We should be authed.
                 WPLog(@"Authed. Loading stats.");
-                authed = YES;
-                [[self class] setLastAuthedName:username];
-                [self loadStats];
+                statsWebViewController.authed = YES;
+                [[statsWebViewController class] setLastAuthedName:username];
+                [statsWebViewController loadStats];
                 return;
             }
         }
 
-        [self showAuthFailed];
+        [statsWebViewController showAuthFailed];
         
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         // Just in case .com is ever edited to return a 401 on auth fail...
         if(operation.response.statusCode == 401){
             // If we failed due to bad credentials...
-            [self showAuthFailed];
+            [statsWebViewController showAuthFailed];
             
         } else {
 
             UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error", @"")
                                                                 message:NSLocalizedString(@"There was a problem connecting to your stats. Would you like to retry?", @"")
-                                                               delegate:self
+                                                               delegate:statsWebViewController
                                                       cancelButtonTitle:NSLocalizedString(@"Cancel", nil)
                                                       otherButtonTitles:NSLocalizedString(@"Retry?", nil), nil];
             [alertView show];

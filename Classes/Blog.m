@@ -28,6 +28,7 @@
 - (void)mergeComments:(NSArray *)newComments;
 - (void)mergePages:(NSArray *)newPages;
 - (void)mergePosts:(NSArray *)newPosts;
+@property (assign) BOOL reachable;
 @end
 
 
@@ -43,6 +44,7 @@
 @dynamic lastPostsSync, lastStatsSync, lastPagesSync, lastCommentsSync, lastUpdateWarning;
 @synthesize isSyncingPosts, isSyncingPages, isSyncingComments;
 @dynamic geolocationEnabled, options, postFormats, isActivated;
+@synthesize reachable = _isReachable;
 
 - (BOOL)geolocationEnabled 
 {
@@ -330,15 +332,16 @@
 - (Reachability *)reachability {
     if (_reachability == nil) {
         _reachability = [Reachability reachabilityWithHostname:self.hostname];
+        __weak Blog *blog = self;
         _reachability.reachableBlock = ^(Reachability *reach) {
-            [self willChangeValueForKey:@"reachable"];
-            _isReachable = YES;
-            [self didChangeValueForKey:@"reachable"];
+            [blog willChangeValueForKey:@"reachable"];
+            blog.reachable = YES;
+            [blog didChangeValueForKey:@"reachable"];
         };
         _reachability.unreachableBlock = ^(Reachability *reach) {
-            [self willChangeValueForKey:@"reachable"];
-            _isReachable = NO;
-            [self didChangeValueForKey:@"reachable"];
+            [blog willChangeValueForKey:@"reachable"];
+            blog.reachable = NO;
+            [blog didChangeValueForKey:@"reachable"];
         };
         [_reachability startNotifier];
     }

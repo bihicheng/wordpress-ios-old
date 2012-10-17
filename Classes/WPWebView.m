@@ -287,19 +287,20 @@ NSString *refreshedWithOutValidRequestNotification = @"refreshedWithOutValidRequ
 
     self.currentHTTPRequestOperation = [[AFHTTPRequestOperation alloc] initWithRequest:mRequest];
     
+    __weak WPWebView *wpWebView = self;
     [currentHTTPRequestOperation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
         // Check for a redirect.  Make sure the current URL reflects any redirects.
-        NSURL *currURL = [[self currentRequest] URL];
+        NSURL *currURL = [[wpWebView currentRequest] URL];
         NSURL *respURL = [[operation response] URL];
         if(![[currURL absoluteString] isEqualToString:[respURL absoluteString]]) {
-            NSMutableURLRequest *mReq = [currentRequest mutableCopy];
+            NSMutableURLRequest *mReq = [wpWebView.currentRequest mutableCopy];
             [mReq setURL:respURL];
             self.currentRequest = mReq;
             self.baseURLFallback = [NSURL URLWithString:[NSString stringWithFormat:@"%@://%@/", mReq.URL.scheme, mReq.URL.host]];
         }
-        [webView loadData:operation.responseData MIMEType:operation.response.MIMEType textEncodingName:@"utf-8" baseURL:aRequest.URL];
+        [wpWebView.webView loadData:operation.responseData MIMEType:operation.response.MIMEType textEncodingName:@"utf-8" baseURL:aRequest.URL];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        [self webView:webView didFailLoadWithError:error];
+        [wpWebView webView:wpWebView.webView didFailLoadWithError:error];
     }];
     
     [currentHTTPRequestOperation start];
