@@ -30,8 +30,7 @@
 		[locationManager stopUpdatingLocation];
 	}
 	if (reverseGeocoder) {
-		reverseGeocoder.delegate = nil;
-		[reverseGeocoder cancel];
+		[reverseGeocoder cancelGeocode];
 	}
 	mapView.delegate = nil;
 }
@@ -148,8 +147,7 @@
     
     mapView = nil;
     
-    [reverseGeocoder cancel];
-    reverseGeocoder.delegate = nil;
+    [reverseGeocoder cancelGeocode];
     reverseGeocoder = nil;
     
     statusTitleLabel = nil;
@@ -940,36 +938,33 @@
     // else skip the event and process the next one.
 }
 
-#pragma mark -
-#pragma mark MKReverseGeocoderDelegate
-
-- (void)reverseGeocoder:(MKReverseGeocoder *)geocoder didFindPlacemark:(MKPlacemark *)placemark {
-	if (placemark.subLocality) {
-		address = [NSString stringWithFormat:@"%@, %@, %@", placemark.subLocality, placemark.locality, placemark.country];
-	} else {
-		address = [NSString stringWithFormat:@"%@, %@, %@", placemark.locality, placemark.administrativeArea, placemark.country];
-	}
-	addressLabel.text = address;
-}
-
-- (void)reverseGeocoder:(MKReverseGeocoder *)geocoder didFailWithError:(NSError *)error {
-	NSLog(@"Reverse geocoder failed for coordinate (%.6f, %.6f): %@",
-		  geocoder.coordinate.latitude,
-		  geocoder.coordinate.longitude,
-		  [error localizedDescription]);
-	
-	address = [NSString stringWithString:NSLocalizedString(@"Location unknown", @"Used when geo-tagging posts, if the geo-tagging failed.")];
-	addressLabel.text = address;
-}
+#pragma mark - CLGecocoder wrapper
 
 - (void)geocodeCoordinate:(CLLocationCoordinate2D)c {
 	if (reverseGeocoder) {
-		if (reverseGeocoder.querying)
-			[reverseGeocoder cancel];
+		if (reverseGeocoder.geocoding)
+			[reverseGeocoder cancelGeocode];
 	}
-	reverseGeocoder = [[MKReverseGeocoder alloc] initWithCoordinate:c];
-	reverseGeocoder.delegate = self;
-	[reverseGeocoder start];	
+    reverseGeocoder = [[CLGeocoder alloc] init];
+    [reverseGeocoder reverseGeocodeLocation:[[CLLocation alloc] initWithLatitude:c.latitude longitude:c.longitude] completionHandler:^(NSArray *placemarks, NSError *error) {
+        if (placemarks) {
+            CLPlacemark *placemark = [placemarks objectAtIndex:0];
+            if (placemark.subLocality) {
+                address = [NSString stringWithFormat:@"%@, %@, %@", placemark.subLocality, placemark.locality, placemark.country];
+            } else {
+                address = [NSString stringWithFormat:@"%@, %@, %@", placemark.locality, placemark.administrativeArea, placemark.country];
+            }
+            addressLabel.text = address;
+        } else {
+            NSLog(@"Reverse geocoder failed for coordinate (%.6f, %.6f): %@",
+                  c.latitude,
+                  c.longitude,
+                  [error localizedDescription]);
+            
+            address = [NSString stringWithString:NSLocalizedString(@"Location unknown", @"Used when geo-tagging posts, if the geo-tagging failed.")];
+            addressLabel.text = address;
+        }
+    }];
 }
 
 @end

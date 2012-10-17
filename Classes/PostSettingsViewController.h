@@ -11,7 +11,7 @@
 #define kOFFSET_FOR_KEYBOARD                    150.0
 
 @class EditPostViewController;
-@interface PostSettingsViewController : UIViewController <UITableViewDelegate, UITableViewDataSource, UIPickerViewDelegate, UIPickerViewDataSource, UITextFieldDelegate, CLLocationManagerDelegate, MKReverseGeocoderDelegate, UIActionSheetDelegate> {
+@interface PostSettingsViewController : UIViewController <UITableViewDelegate, UITableViewDataSource, UIPickerViewDelegate, UIPickerViewDataSource, UITextFieldDelegate, CLLocationManagerDelegate, UIActionSheetDelegate> {
     IBOutlet UITableView *tableView;
     IBOutlet UITableViewCell *statusTableViewCell;
     IBOutlet UITableViewCell *visibilityTableViewCell;
@@ -35,7 +35,7 @@
 
 	/* Geotagging */
 	CLLocationManager *locationManager;
-	MKReverseGeocoder *reverseGeocoder;
+    CLGeocoder *reverseGeocoder;
     UITableViewActivityCell *addGeotagTableViewCell;
     IBOutlet UITableViewCell *mapGeotagTableViewCell;
 	UITableViewCell *removeGeotagTableViewCell;
