@@ -12,7 +12,7 @@ Version: 27706b96b8a7a21132ce8a89d287eff0298db682
 
 Reachability
 Source: https://github.com/tonymillion/Reachability
-Version: 1cf8f0ff987cc473c6be9204eb3abb7f6322a805
+Version: f5fafd1c0a172bc42e573aff2af52383d58182e4
 
 KVO+Blocks
 Source: https://gist.github.com/153676

@@ -605,7 +605,7 @@
 		FD4500D11580DF3600F2B0E6 /* UIColor+Helpers.m in Sources */ = {isa = PBXBuildFile; fileRef = FD4500D01580DF3500F2B0E6 /* UIColor+Helpers.m */; };
 		FD75DDAD15B021C80043F12C /* UIViewController+Rotation.m in Sources */ = {isa = PBXBuildFile; fileRef = FD75DDAC15B021C80043F12C /* UIViewController+Rotation.m */; };
 		FD9A948C12FAEA2300438F94 /* DateUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = FD9A948B12FAEA2300438F94 /* DateUtils.m */; };
-		FDA68C2014AC6CB800151896 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = FDA68C1F14AC6CB800151896 /* Reachability.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		FDA68C2014AC6CB800151896 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = FDA68C1F14AC6CB800151896 /* Reachability.m */; };
 		FDC528AC157E551100A3FD91 /* SidebarTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = FDC528AB157E551000A3FD91 /* SidebarTableViewCell.m */; };
 /* End PBXBuildFile section */
 
