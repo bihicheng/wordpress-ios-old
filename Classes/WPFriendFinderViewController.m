@@ -69,11 +69,9 @@ typedef void (^CancelBlock)();
     NSDictionary *settings = (NSDictionary *)config;
     NSArray *sources = (NSArray *)[settings objectForKey:@"sources"];
     
-    Class tweetComposer = NSClassFromString(@"TWTweetComposeViewController");
-    
     NSMutableArray *available = [NSMutableArray arrayWithObjects:@"address-book", @"facebook", nil];
     
-    if ( [sources containsObject:@"twitter"] && tweetComposer && [tweetComposer performSelector:(@selector(canSendTweet))]){
+    if ( [sources containsObject:@"twitter"] && [TWTweetComposeViewController performSelector:(@selector(canSendTweet))]){
         [available addObject:@"twitter"];
     }
     

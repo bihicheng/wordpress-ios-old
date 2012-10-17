@@ -442,7 +442,10 @@
 
 - (void)moderateCommentWithSelector:(SEL)selector {
     Blog *currentBlog = self.comment.blog;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
     [self.comment performSelector:selector];
+#pragma clang diagnostic pop
     if (!IS_IPAD) {
         [self.navigationController popViewControllerAnimated:YES];
     } else {
