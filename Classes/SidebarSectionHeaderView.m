@@ -232,15 +232,15 @@ CGFloat const BadgeHeight = 24.f;
 
 - (void)updateGradient {
     CAGradientLayer *gradient = (CAGradientLayer *)self.layer;
-    CGColorRef startColor, endColor;
+    UIColor *startColor, *endColor;
     if (self.disclosureButton.selected) {
-        startColor = [[UIColor colorWithWhite:0.6f alpha:0.4f] CGColor];
-        endColor = [[UIColor colorWithWhite:0.6f alpha:0.0f] CGColor];
+        startColor = [UIColor colorWithWhite:0.6f alpha:0.4f];
+        endColor = [UIColor colorWithWhite:0.6f alpha:0.0f];
     } else {
-        startColor = [[UIColor colorWithWhite:0.6f alpha:0.3f] CGColor];
-        endColor = [[UIColor colorWithWhite:0.6f alpha:0.f] CGColor];
+        startColor = [UIColor colorWithWhite:0.6f alpha:0.3f];
+        endColor = [UIColor colorWithWhite:0.6f alpha:0.f];
     }
-    gradient.colors = [NSArray arrayWithObjects:CFBridgingRelease(startColor), CFBridgingRelease(endColor), nil];
+    gradient.colors = @[(id)[startColor CGColor], (id)[endColor CGColor]];
 }
 
 - (void)dealloc {
