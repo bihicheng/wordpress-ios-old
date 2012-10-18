@@ -508,12 +508,10 @@ NSString *const WPReaderViewControllerDisplayedFriendFinder = @"displayed friend
     if (self.loading && ([error code] != -999) && [error code] != 102)
         [[NSNotificationCenter defaultCenter] postNotificationName:@"OpenWebPageFailed" object:error userInfo:nil];
     self.loading = NO;
-    [super webView:webView didFailLoadWithError:error];
 }
 
 - (void)webViewDidStartLoad:(UIWebView *)aWebView {
     [FileLogger log:@"%@ %@%@", self, NSStringFromSelector(_cmd), aWebView.request.URL];
-    [super webViewDidStartLoad:aWebView];
 }
 
 - (void)webViewDidFinishLoad:(UIWebView *)aWebView {
@@ -525,8 +523,6 @@ NSString *const WPReaderViewControllerDisplayedFriendFinder = @"displayed friend
         [self refreshWebView];
         return;
     }
-    // Since WPWebAppViewController releases the delegate, call super at the end. See #1356
-    [super webViewDidFinishLoad:aWebView];
 }
 
 #pragma mark - Friend Finder Button
