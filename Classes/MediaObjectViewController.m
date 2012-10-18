@@ -51,7 +51,7 @@
 		self.navigationItem.title = NSLocalizedString(@"Image", @"");
 		imageView.image = [UIImage imageWithContentsOfFile:media.localURL];
 		if((imageView.image == nil) && (media.remoteURL != nil)) {
-			imageView.image = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:media.remoteURL]]];
+            [imageView setImageWithURL:[NSURL URLWithString:media.remoteURL]];
 		}
 	}
 	
