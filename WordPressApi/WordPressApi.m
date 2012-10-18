@@ -6,10 +6,11 @@
 //  Copyright (c) 2012 WordPress. All rights reserved.
 //
 
+#import <CTidy.h>
 #import "WordPressApi.h"
 #import "AFHTTPRequestOperation.h"
 #import "AFXMLRPCClient.h"
-#import "TouchXML.h"
+#import "WPRSDParser.h"
 
 #ifndef WPFLog
 #define WPFLog(...) NSLog(__VA_ARGS__)
@@ -167,11 +168,12 @@
                     [self logExtraInfo:@"The RSD link not found using RegExp, on the following doc: %@", operation.responseString];
                     [self logExtraInfo:@"Try to find it again on a cleaned HTML document"];
                     NSError *htmlError;
-                    CXMLDocument *rsdHTML = [[CXMLDocument alloc] initWithXMLString:operation.responseString options:CXMLDocumentTidyXML error:&htmlError];
-                    if(!htmlError) {
-                        NSString *cleanedHTML = [rsdHTML XMLStringWithOptions:CXMLDocumentTidyXML];
+                    CTidy *tidy = [CTidy tidy];
+                    NSData *cleanedData = [tidy tidyData:operation.responseData inputFormat:CTidyFormatXML outputFormat:CTidyFormatXML encoding:@"utf8" diagnostics:nil error:&htmlError];
+                    NSString *cleanedHTML = [[NSString alloc] initWithData:cleanedData encoding:NSUTF8StringEncoding];
+                    if(cleanedHTML) {
                         [self logExtraInfo:@"The cleaned doc: %@", cleanedHTML];
-                        NSArray *matches = [rsdURLRegExp matchesInString:operation.responseString options:0 range:NSMakeRange(0, [cleanedHTML length])];
+                        NSArray *matches = [rsdURLRegExp matchesInString:cleanedHTML options:0 range:NSMakeRange(0, [cleanedHTML length])];
                         if ([matches count]) {
                             NSRange rsdURLRange = [[matches objectAtIndex:0] rangeAtIndex:1];
                             if (rsdURLRange.location != NSNotFound)
@@ -191,29 +193,21 @@
                         NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:rsdURL]];
                         AFHTTPRequestOperation *operation = [[AFHTTPRequestOperation alloc] initWithRequest:request];
                         [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
-                            NSError *rsdError;
-                            CXMLDocument *rsdXML = [[CXMLDocument alloc] initWithXMLString:operation.responseString options:CXMLDocumentTidyXML error:&rsdError];
-                            if (!rsdError) {
-                                @try {
-                                    CXMLElement *serviceXML = [[[rsdXML rootElement] children] objectAtIndex:1];
-                                    for(CXMLElement *api in [[[serviceXML elementsForName:@"apis"] objectAtIndex:0] elementsForName:@"api"]) {
-                                        if([[[api attributeForName:@"name"] stringValue] isEqualToString:@"WordPress"]) {
-                                            // Bingo! We found the WordPress XML-RPC element
-                                            xmlrpc = [[api attributeForName:@"apiLink"] stringValue];
-                                            xmlrpcURL = [NSURL URLWithString:xmlrpc];
-                                            [self logExtraInfo:@"Bingo! We found the WordPress XML-RPC element: %@", xmlrpcURL];
-                                            [self validateXMLRPCUrl:xmlrpcURL success:^{
-                                                if (success) success(xmlrpcURL);
-                                            } failure:^(NSError *error){
-                                                [self logExtraInfo: [error localizedDescription]];
-                                                if (failure) failure(error);
-                                            }];
-                                        }
-                                    }
-                                }
-                                @catch (NSException *exception) {
+                            NSError *error;
+                            WPRSDParser *parser = [[WPRSDParser alloc] initWithXmlString:operation.responseString];
+                            NSString *parsedEndpoint = [parser parsedEndpointWithError:&error];
+                            if (parsedEndpoint) {
+                                xmlrpc = parsedEndpoint;
+                                xmlrpcURL = [NSURL URLWithString:xmlrpc];
+                                [self logExtraInfo:@"Bingo! We found the WordPress XML-RPC element: %@", xmlrpcURL];
+                                [self validateXMLRPCUrl:xmlrpcURL success:^{
+                                    if (success) success(xmlrpcURL);
+                                } failure:^(NSError *error){
+                                    [self logExtraInfo: [error localizedDescription]];
                                     if (failure) failure(error);
-                                }
+                                }];
+                            } else {
+                                if (failure) failure(error);
                             }
                         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                             [self logExtraInfo: [error localizedDescription]];
