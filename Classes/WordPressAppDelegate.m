@@ -930,9 +930,7 @@ static WordPressAppDelegate *wordPressApp = NULL;
 
 - (void)cleanUnusedMediaFileFromTmpDir {
     [FileLogger log:@"%@ %@", self, NSStringFromSelector(_cmd)];
-    @autoreleasepool {
-
-		NSMutableArray *mediaToKeep = [NSMutableArray array];
+    NSMutableArray *mediaToKeep = [NSMutableArray array];
 
     NSError *error = nil;
     NSManagedObjectContext *context = [[NSManagedObjectContext alloc] init];
@@ -946,40 +944,39 @@ static WordPressAppDelegate *wordPressApp = NULL;
     if (error != nil) {
         WPFLog(@"Error cleaning up tmp files: %@", [error localizedDescription]);
     }
-		//get a references to media files linked in a post
+    //get a references to media files linked in a post
     NSLog(@"%i media items to check for cleanup", [mediaObjectsToKeep count]);
-		for (Media *media in mediaObjectsToKeep) {
-//        [mediaToKeep addObject:media.localURL];
-		}
+    for (Media *media in mediaObjectsToKeep) {
+        //        [mediaToKeep addObject:media.localURL];
+    }
 
-		//searches for jpg files within the app temp file
-		NSFileManager *fileManager = [NSFileManager defaultManager];
-		NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-		NSString *documentsDirectory = [paths objectAtIndex:0];
-		NSArray *contentsOfDir = [fileManager contentsOfDirectoryAtPath:documentsDirectory error:NULL];
-    
+    //searches for jpg files within the app temp file
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    NSArray *contentsOfDir = [fileManager contentsOfDirectoryAtPath:documentsDirectory error:NULL];
+
     NSError *regexpError = NULL;
     NSRegularExpression *jpeg = [NSRegularExpression regularExpressionWithPattern:@".jpg$" options:NSRegularExpressionCaseInsensitive error:&regexpError];
 
-		for (NSString *currentPath in contentsOfDir)
-			if([jpeg numberOfMatchesInString:currentPath options:0 range:NSMakeRange(0, [currentPath length])] > 0) {
-				NSString *filepath = [documentsDirectory stringByAppendingPathComponent:currentPath];
+    for (NSString *currentPath in contentsOfDir) {
+        if([jpeg numberOfMatchesInString:currentPath options:0 range:NSMakeRange(0, [currentPath length])] > 0) {
+            NSString *filepath = [documentsDirectory stringByAppendingPathComponent:currentPath];
 
-				BOOL keep = NO;
-				//if the file is not referenced in any post we can delete it
-				for (NSString *currentMediaToKeepPath in mediaToKeep) {
-					if([currentMediaToKeepPath isEqualToString:filepath]) {
-						keep = YES;
-						break;
-					}
-				}
+            BOOL keep = NO;
+            //if the file is not referenced in any post we can delete it
+            for (NSString *currentMediaToKeepPath in mediaToKeep) {
+                if([currentMediaToKeepPath isEqualToString:filepath]) {
+                    keep = YES;
+                    break;
+                }
+            }
 
-				if(keep == NO) {
-					[fileManager removeItemAtPath:filepath error:NULL];
-				}
-			}
-
-	}
+            if(keep == NO) {
+                [fileManager removeItemAtPath:filepath error:NULL];
+            }
+        }
+    }
 }
 
 #pragma mark - Push Notification delegate
