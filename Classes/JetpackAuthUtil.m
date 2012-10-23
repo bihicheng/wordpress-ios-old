@@ -183,14 +183,14 @@
         [FileLogger log:@"Blog URL - %@", blogURL];
         [FileLogger log:@"Parsed URL - %@", parsedURL];
 
-        NSMutableString *parsedHost = [[[parsedURL host] mutableCopy] autorelease];
+        NSMutableString *parsedHost = [[[[parsedURL host] lowercaseString] mutableCopy] autorelease];
         [parsedHost replaceOccurrencesOfString:@"www." withString:@"" options:0 range:NSMakeRange(0, [parsedHost length])];
         parsedHost = [NSMutableString stringWithFormat:@"%@%@",parsedHost, [parsedURL path]];
         if (![parsedHost hasSuffix:@"/"]) {
             [parsedHost appendString:@"/"];
         }
         
-        NSMutableString *blogHost = [[[blogURL host] mutableCopy] autorelease];
+        NSMutableString *blogHost = [[[[blogURL host] lowercaseString] mutableCopy] autorelease];
         [blogHost replaceOccurrencesOfString:@"www." withString:@"" options:0 range:NSMakeRange(0, [blogHost length])];
         blogHost = [NSMutableString stringWithFormat:@"%@%@",blogHost, [blogURL path]];
         if (![blogHost hasSuffix:@"/"]) {
