@@ -55,7 +55,14 @@
 - (void)dealloc {
     [FileLogger log:@"%@ %@", self, NSStringFromSelector(_cmd)];
 
+    [self.comment removeObserver:self forKeyPath:@"status"];
     self.comment = nil;
+    if (_reachabilityToken) {
+        [_comment.blog removeObserverWithBlockToken:_reachabilityToken];
+        _reachabilityToken = nil;
+    }
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+
     self.delegate = nil;
     [segmentedControl release];
     [segmentBarItem release];
