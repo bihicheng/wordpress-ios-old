@@ -24,6 +24,7 @@
     BOOL promptCredentialsWhenViewAppears;
     AFHTTPRequestOperation *authRequest;
     JetpackAuthUtil *jetpackAuthUtil;
+    UIAlertView *retryAlertView;
 }
 
 @property (nonatomic, strong) NSString *wporgBlogJetpackKey;
@@ -79,6 +80,7 @@ static NSString *_lastAuthedName = nil;
     }
     [authRequest release];
     jetpackAuthUtil.delegate = nil;
+    retryAlertView.delegate = nil;
     [jetpackAuthUtil release];
     
     [super dealloc];
@@ -268,6 +270,19 @@ static NSString *_lastAuthedName = nil;
 
 
 
+- (void)showRetryAlertView {
+    if (retryAlertView)
+        return;
+
+
+    retryAlertView = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error", @"")
+                                                        message:NSLocalizedString(@"There was a problem connecting to your stats. Would you like to retry?", @"")
+                                                       delegate:self
+                                              cancelButtonTitle:NSLocalizedString(@"Cancel", nil)
+                                              otherButtonTitles:NSLocalizedString(@"Retry?", nil), nil];
+    [retryAlertView show];
+}
+
 - (void)authStats {
     [FileLogger log:@"%@ %@", self, NSStringFromSelector(_cmd)];
     if (authed) {
@@ -341,14 +356,7 @@ static NSString *_lastAuthedName = nil;
             [self showAuthFailed];
             
         } else {
-
-            UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error", @"")
-                                                                message:NSLocalizedString(@"There was a problem connecting to your stats. Would you like to retry?", @"")
-                                                               delegate:self
-                                                      cancelButtonTitle:NSLocalizedString(@"Cancel", nil)
-                                                      otherButtonTitles:NSLocalizedString(@"Retry?", nil), nil];
-            [alertView show];
-            [alertView release];
+            [self showRetryAlertView];
         }
     }];
     
@@ -402,6 +410,11 @@ static NSString *_lastAuthedName = nil;
 #pragma mark UIAlertView Delegate Methods
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if (alertView == retryAlertView) {
+      [retryAlertView release];
+      retryAlertView = nil;
+    }
+
     if (buttonIndex > 0) { // retry
         [self loadStats];
     }
