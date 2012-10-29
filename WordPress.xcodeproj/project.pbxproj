@@ -543,6 +543,7 @@
 		E1EE23E612E62864000B2BE6 /* movie@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E1EE23E412E62864000B2BE6 /* movie@2x.png */; };
 		E1EE23E912E628F6000B2BE6 /* attachment.png in Resources */ = {isa = PBXBuildFile; fileRef = E1EE23E712E628F6000B2BE6 /* attachment.png */; };
 		E1EE23EA12E628F6000B2BE6 /* attachment@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E1EE23E812E628F6000B2BE6 /* attachment@2x.png */; };
+		E1EF9CB6163EFEF5006E927E /* NSDictionary+Expectations.m in Sources */ = {isa = PBXBuildFile; fileRef = E1EF9CB5163EFEF5006E927E /* NSDictionary+Expectations.m */; };
 		E1F0258913AF588C00E3A76A /* keyboardClose~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = E1F0258813AF588C00E3A76A /* keyboardClose~ipad.png */; };
 		E1F80825146420B000726BC7 /* UIImageView+Gravatar.m in Sources */ = {isa = PBXBuildFile; fileRef = E1F80824146420B000726BC7 /* UIImageView+Gravatar.m */; };
 		E1FC3DB413C7788700F6B60F /* WPWebViewController-iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = E1FC3DB313C7788700F6B60F /* WPWebViewController-iPad.xib */; };
@@ -1280,6 +1281,8 @@
 		E1EE23E412E62864000B2BE6 /* movie@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "movie@2x.png"; sourceTree = "<group>"; };
 		E1EE23E712E628F6000B2BE6 /* attachment.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = attachment.png; sourceTree = "<group>"; };
 		E1EE23E812E628F6000B2BE6 /* attachment@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "attachment@2x.png"; sourceTree = "<group>"; };
+		E1EF9CB4163EFEF5006E927E /* NSDictionary+Expectations.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSDictionary+Expectations.h"; sourceTree = "<group>"; };
+		E1EF9CB5163EFEF5006E927E /* NSDictionary+Expectations.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDictionary+Expectations.m"; sourceTree = "<group>"; };
 		E1F0258813AF588C00E3A76A /* keyboardClose~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "keyboardClose~ipad.png"; sourceTree = "<group>"; };
 		E1F808221464205100726BC7 /* WPAFNetworking.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WPAFNetworking.h; sourceTree = "<group>"; };
 		E1F80823146420B000726BC7 /* UIImageView+Gravatar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImageView+Gravatar.h"; sourceTree = "<group>"; };
@@ -2273,6 +2276,8 @@
 				FD75DDAC15B021C80043F12C /* UIViewController+Rotation.m */,
 				E1745A9815AF49C000A3F7C5 /* UIViewController+Styled.h */,
 				E1745A9915AF49C000A3F7C5 /* UIViewController+Styled.m */,
+				E1EF9CB4163EFEF5006E927E /* NSDictionary+Expectations.h */,
+				E1EF9CB5163EFEF5006E927E /* NSDictionary+Expectations.m */,
 			);
 			name = Categories;
 			sourceTree = "<group>";
@@ -3210,6 +3215,7 @@
 				5DC3A44D1610B9BC00A890BE /* UINavigationController+Rotation.m in Sources */,
 				E1A0FAE7162F11CF0063B098 /* UIDevice+WordPressIdentifier.m in Sources */,
 				E10466081630961700E8EDDA /* WPRSDParser.m in Sources */,
+				E1EF9CB6163EFEF5006E927E /* NSDictionary+Expectations.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

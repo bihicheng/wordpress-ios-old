@@ -7,6 +7,7 @@
 //
 
 #import "Comment.h"
+#import "NSDictionary+Expectations.h"
 
 @interface Comment (PrivateMethods)
 + (Comment *)newCommentForBlog:(Blog *)blog;
@@ -59,7 +60,7 @@
         return nil;
     }
     
-    Comment *comment = [self findWithBlog:blog andCommentID:[[commentInfo objectForKey:@"comment_id"] numericValue]];
+    Comment *comment = [self findWithBlog:blog andCommentID:[commentInfo numberForKey:@"comment_id"] numericValue]];
     
     if (comment == nil) {
         comment = [Comment newCommentForBlog:blog];

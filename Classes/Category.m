@@ -7,6 +7,7 @@
 //
 
 #import "Category.h"
+#import "NSDictionary+Expectations.h"
 
 @interface Category(PrivateMethods)
 + (Category *)newCategoryForBlog:(Blog *)blog;
@@ -57,15 +58,15 @@
         return nil;
     }
 
-    Category *category = [self findWithBlog:blog andCategoryID:[[categoryInfo objectForKey:@"categoryId"] numericValue]];
+    Category *category = [self findWithBlog:blog andCategoryID:[categoryInfo numberForKey:@"categoryId"]];
     
     if (category == nil) {
         category = [Category newCategoryForBlog:blog];
     }
     
-    category.categoryID     = [[categoryInfo objectForKey:@"categoryId"] numericValue];
-    category.categoryName   = [categoryInfo objectForKey:@"categoryName"];
-    category.parentID       = [[categoryInfo objectForKey:@"parentId"] numericValue];
+    category.categoryID     = [categoryInfo numberForKey:@"categoryId"];
+    category.categoryName   = [categoryInfo stringForKey:@"categoryName"];
+    category.parentID       = [categoryInfo numberForKey:@"parentId"];
     
     return category;
 }
