@@ -71,6 +71,7 @@ static NSString *_lastAuthedName = nil;
 
 
 - (void)dealloc {
+    WPFLogMethod();
     [blog release];
     [wporgBlogJetpackKey release];
     if (authRequest && [authRequest isExecuting]) {
