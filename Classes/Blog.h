@@ -32,6 +32,7 @@
 @property (nonatomic, weak) NSNumber *isActivated;
 @property (nonatomic, strong) NSDictionary *options; //we can store an NSArray or an NSDictionary as a transformable attribute... 
 @property (nonatomic, strong) NSDictionary *postFormats;
+@property (nonatomic, strong) NSDate *loginLimitedUntil;
 @property (weak, readonly) NSArray *sortedPostFormatNames;
 @property (readonly, nonatomic, strong) AFXMLRPCClient *api;
 @property (weak, readonly) NSString *version;

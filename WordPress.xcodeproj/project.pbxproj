@@ -1150,6 +1150,7 @@
 		E125451712BF68F900D87A0A /* Page.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Page.m; sourceTree = "<group>"; };
 		E128566215103A3600406BC9 /* keyboardButtoniPad@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "keyboardButtoniPad@2x.png"; sourceTree = "<group>"; };
 		E128566315103A3600406BC9 /* keyboardButtoniPadHighlighted@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "keyboardButtoniPadHighlighted@2x.png"; sourceTree = "<group>"; };
+		E1286588164C370B005B446F /* WordPress 8.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = file; path = "WordPress 8.xcdatamodel"; sourceTree = "<group>"; };
 		E12AAB601513C4B6009D025B /* WPComOAuthController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WPComOAuthController.h; sourceTree = "<group>"; };
 		E12AAB611513C4B6009D025B /* WPComOAuthController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WPComOAuthController.m; sourceTree = "<group>"; };
 		E12AAB631513C4CA009D025B /* WPComOAuthController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = WPComOAuthController.xib; sourceTree = "<group>"; };
@@ -3688,6 +3689,7 @@
 		E125443B12BF5A7200D87A0A /* WordPress.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
+				E1286588164C370B005B446F /* WordPress 8.xcdatamodel */,
 				E1874BFE161C5DBC0058BDC4 /* WordPress 7.xcdatamodel */,
 				FD374343156CF4B800BAB5B5 /* WordPress 6.xcdatamodel */,
 				E1472EF915344A2A00D08657 /* WordPress 5.xcdatamodel */,
@@ -3696,7 +3698,7 @@
 				8350E15911D28B4A00A7B073 /* WordPress.xcdatamodel */,
 				E125443D12BF5A7200D87A0A /* WordPress 2.xcdatamodel */,
 			);
-			currentVersion = E1874BFE161C5DBC0058BDC4 /* WordPress 7.xcdatamodel */;
+			currentVersion = E1286588164C370B005B446F /* WordPress 8.xcdatamodel */;
 			name = WordPress.xcdatamodeld;
 			path = Classes/WordPress.xcdatamodeld;
 			sourceTree = "<group>";
