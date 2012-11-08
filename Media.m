@@ -175,6 +175,7 @@
                 if ([self isDeleted] || self.managedObjectContext == nil)
                     return;
                 
+                [self.blog checkLoginLimiterWithError:error];
                 if ([self.mediaType isEqualToString:@"featured"]) {
                     [[NSNotificationCenter defaultCenter] postNotificationName:FeaturedImageUploadFailed
                                                                         object:self];

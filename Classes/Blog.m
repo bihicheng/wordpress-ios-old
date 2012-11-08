@@ -467,6 +467,7 @@
             success();
         }
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        [self checkLoginLimiterWithError:error];
         if (failure) {
             failure(error);
         }
@@ -508,6 +509,7 @@
                 }
                 if (success) success();
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                [self checkLoginLimiterWithError:error];
                 NSString *errorMessage = [error localizedDescription];
                 
                 if ([errorMessage isEqualToString:@"Parse Error. Please check your XML-RPC endpoint."])
@@ -542,6 +544,7 @@
 
         if (success) success(videoEnabled);
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        [self checkLoginLimiterWithError:error];
         if (failure) failure(error);
     }];
     [self.api enqueueXMLRPCRequestOperation:operation];
@@ -580,6 +583,7 @@
         }
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         WPFLog(@"Error syncing options: %@", [error localizedDescription]);
+        [self checkLoginLimiterWithError:error];
 
         if (failure) {
             failure(error);
@@ -619,6 +623,7 @@
         }
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         WPFLog(@"Error syncing post formats: %@", [error localizedDescription]);
+        [self checkLoginLimiterWithError:error];
 
         if (failure) {
             failure(error);
@@ -645,6 +650,7 @@
         self.lastCommentsSync = [NSDate date];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         WPFLog(@"Error syncing comments: %@", [error localizedDescription]);
+        [self checkLoginLimiterWithError:error];
 
         if (failure) {
             failure(error);
@@ -669,6 +675,7 @@
         }
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         WPFLog(@"Error syncing categories: %@", [error localizedDescription]);
+        [self checkLoginLimiterWithError:error];
 
         if (failure) {
             failure(error);
@@ -721,7 +728,8 @@
         }
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         WPFLog(@"Error syncing posts: %@", [error localizedDescription]);
-        
+        [self checkLoginLimiterWithError:error];
+
         if (failure) {
             failure(error);
         }
@@ -775,6 +783,7 @@
         self.isSyncingPages = NO;
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         WPFLog(@"Error syncing pages: %@", [error localizedDescription]);
+        [self checkLoginLimiterWithError:error];
 
         if (failure) {
             failure(error);
@@ -783,6 +792,14 @@
     }];
 
     return operation;
+}
+
+- (BOOL)checkLoginLimiterWithError:(NSError *)error {
+    if (self.isWPcom && [error.domain isEqualToString:@"XMLRPC"] && error.code == 503) {
+        self.loginLimitedUntil = [NSDate dateWithTimeIntervalSinceNow:300];
+        return YES;
+    }
+    return NO;
 }
 
 #pragma mark -

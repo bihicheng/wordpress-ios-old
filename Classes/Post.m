@@ -302,6 +302,7 @@
                           self.featuredImageURL = [mediaItem objectForKey:@"link"];
                           if (success) success();
                       } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                          [self.blog checkLoginLimiterWithError:error];
                           if (failure) {
                               failure(error);
                           }
@@ -414,6 +415,7 @@
                                                                                    if ([self isDeleted] || self.managedObjectContext == nil)
                                                                                        return;
 
+                                                                                   [self.blog checkLoginLimiterWithError:error];
                                                                                    self.remoteStatus = AbstractPostRemoteStatusFailed;
                                                                                    if (failure) failure(error);
                                                                                    [[NSNotificationCenter defaultCenter] postNotificationName:@"PostUploadFailed" object:self];
@@ -434,6 +436,7 @@
                           [self save];
                           if (success) success();
                       } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                          [self.blog checkLoginLimiterWithError:error];
                           if (failure) {
                               failure(error);
                           }
@@ -470,6 +473,7 @@
                           if (success) success();
                           [[NSNotificationCenter defaultCenter] postNotificationName:@"PostUploaded" object:self];
                       } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                          [self.blog checkLoginLimiterWithError:error];
                           if ([self isDeleted] || self.managedObjectContext == nil)
                               return;
 
@@ -490,6 +494,7 @@
                               [[self managedObjectContext] deleteObject:self];
                               if (success) success();
                           } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                              [self.blog checkLoginLimiterWithError:error];
                               if (failure) failure(error);
                           }];
     }

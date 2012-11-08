@@ -88,6 +88,7 @@
 - (void)syncBlogPostsWithSuccess:(void (^)())success failure:(void (^)(NSError *error))failure;
 - (void)checkActivationStatusWithSuccess:(void (^)())success failure:(void (^)(NSError *error))failure;
 - (void)checkVideoPressEnabledWithSuccess:(void (^)(BOOL enabled))success failure:(void (^)(NSError *error))failure;
+- (BOOL)checkLoginLimiterWithError:(NSError *)error;
 
 #pragma mark -
 #pragma mark Class methods

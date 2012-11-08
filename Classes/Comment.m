@@ -164,6 +164,7 @@
     [self editCommentWithSuccess:^(){
         [self save];
     } failure:^(NSError *error) {
+        [self.blog checkLoginLimiterWithError:error];
         self.status = prevStatus;
         [self save];
     }];
@@ -177,6 +178,7 @@
     [self editCommentWithSuccess:^(){
         [self save];
     } failure:^(NSError *error) {
+        [self.blog checkLoginLimiterWithError:error];
         self.status = prevStatus;
         [self save];
     }];
@@ -191,6 +193,7 @@
         [[self managedObjectContext] deleteObject:self];
         [self save];
     } failure:^(NSError *error) {
+        [self.blog checkLoginLimiterWithError:error];
         self.status = prevStatus;
         [self save];
     }];
@@ -290,6 +293,7 @@
                               failure(error);
                           }
                       } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                          [self.blog checkLoginLimiterWithError:error];
                           if (failure) {
                               failure(error);
                           }
@@ -304,6 +308,7 @@
                           [self updateFromDictionary:responseObject];
                           if (success) success();
                       } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                          [self.blog checkLoginLimiterWithError:error];
                           if (failure) {
                               failure(error);
                           }
@@ -327,6 +332,7 @@
                           // wp.editComment should return true if the edit was successful
                           if (success) success();
                       } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                          [self.blog checkLoginLimiterWithError:error];
                           if (failure) {
                               failure(error);
                           }
@@ -350,6 +356,7 @@
                           [[self managedObjectContext] deleteObject:self];
                           if (success) success();
                       } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                          [self.blog checkLoginLimiterWithError:error];
                           if (failure) failure(error);
                       }];
 }
