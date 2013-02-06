@@ -273,7 +273,6 @@
     }];
 #endif
     if ([self crashCount] == 0) {
-        [Appirater setDebug:YES];
         [Appirater setTimeBeforeReminding:7];
         [Appirater appLaunched:(crashCount == 0)];
     }
