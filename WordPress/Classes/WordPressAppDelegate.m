@@ -273,6 +273,7 @@
     }];
 #endif
     if ([self crashCount] == 0) {
+        [Appirater setDaysUntilPrompt:10];
         [Appirater setTimeBeforeReminding:7];
         [Appirater appLaunched:(crashCount == 0)];
     }
