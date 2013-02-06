@@ -18,6 +18,7 @@
 #import "StatsWebViewController.h"
 #import "WPReaderViewController.h"
 #import "SoundUtil.h"
+#import <Appirater/Appirater.h>
 
 @interface WordPressAppDelegate (Private)
 - (void)setAppBadge;
@@ -130,10 +131,26 @@
 #pragma clang diagnostic pop
 }
 
+- (NSUInteger)crashCount {
+    return [[NSUserDefaults standardUserDefaults] integerForKey:@"crashCount"];
+}
+
+- (void)resetCrashCountOnUpdate {
+    NSString *appversion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
+    NSString *lastVersion = [[NSUserDefaults standardUserDefaults] stringForKey:@"lastLaunchedVersion"];
+    if (![lastVersion isEqualToString:appversion]) {
+        [[NSUserDefaults standardUserDefaults] setObject:appversion forKey:@"lastLaunchedVersion"];
+        [[NSUserDefaults standardUserDefaults] setInteger:0 forKey:@"crashCount"];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+    }
+}
+
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     UIDevice *device = [UIDevice currentDevice];
 	PLCrashReporter *crashReporter = [PLCrashReporter sharedReporter];
-    NSInteger crashCount = [[NSUserDefaults standardUserDefaults] integerForKey:@"crashCount"];
+    NSString *lastVersion = [[NSUserDefaults standardUserDefaults] stringForKey:@"lastLaunchedVersion"];
+    [self resetCrashCountOnUpdate];
+    NSUInteger crashCount = [self crashCount];
 
 	// Check for pending crash reports
 	if (![crashReporter hasPendingCrashReport]) {
@@ -147,6 +164,7 @@
     NSString *extraDebug = [[NSUserDefaults standardUserDefaults] boolForKey:@"extra_debug"] ? @"YES" : @"NO";
     WPFLog(@"===========================================================================");
 	WPFLog(@"Launching WordPress for iOS %@...", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"]);
+    WPFLog(@"Previous launch version:       %@", lastVersion);
     WPFLog(@"Crashed last time: %@", [crashReporter hasPendingCrashReport] ? @"YES" : @"NO" );
     WPFLog(@"Crash count:       %d", crashCount);
 #ifdef DEBUG
@@ -162,6 +180,7 @@
     WPFLog(@"===========================================================================");
 
     [self setupUserAgent];
+    [Appirater setAppId:kAppId];
 
     if([[NSUserDefaults standardUserDefaults] objectForKey:@"wpcom_authenticated_flag"] != nil) {
         NSString *tempIsAuthenticated = (NSString *)[[NSUserDefaults standardUserDefaults] objectForKey:@"wpcom_authenticated_flag"];
@@ -253,6 +272,11 @@
         }];
     }];
 #endif
+    if ([self crashCount] == 0) {
+        [Appirater setDebug:YES];
+        [Appirater setTimeBeforeReminding:7];
+        [Appirater appLaunched:(crashCount == 0)];
+    }
     return YES;
 }
 
@@ -344,6 +368,13 @@
     if (![self.managedObjectContext save:&error]) {
         WPFLog(@"Unresolved Core Data Save error %@, %@", error, [error userInfo]);
         exit(-1);
+    }
+}
+
+- (void)applicationWillEnterForeground:(UIApplication *)application {
+    WPFLogMethod();
+    if ([self crashCount] == 0) {
+        [Appirater appEnteredForeground:YES];
     }
 }
 
