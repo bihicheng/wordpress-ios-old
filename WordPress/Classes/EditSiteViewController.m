@@ -13,9 +13,9 @@
 #import "AFHTTPClient.h"
 #import "HelpViewController.h"
 #import "WPWebViewController.h"
-#import "JetpackAuthUtil.h"
 #import "JetpackSettingsViewController.h"
 #import "ReachabilityUtils.h"
+#import <SVProgressHUD/SVProgressHUD.h>
 
 @interface EditSiteViewController (PrivateMethods)
 
@@ -126,7 +126,7 @@
 
 - (void)viewDidUnload {
     [super viewDidUnload];
-    
+
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
@@ -157,9 +157,6 @@
             else
                 return 1;	
         case 2:
-            //            if ([JetpackAuthUtil getJetpackUsernameForBlog:blog] != nil) {
-            //                return 2;
-            //            }
             return 1;
 	}
 	return 0;
@@ -281,8 +278,8 @@
             cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:@"Cell"];
         };
         cell.textLabel.text = NSLocalizedString(@"Configure", @"");
-        if ([JetpackAuthUtil getJetpackUsernameForBlog:blog] != nil) {
-            cell.detailTextLabel.text = [NSString stringWithFormat:NSLocalizedString(@"Connected as %@", @"Connected to jetpack as the specified usernaem"), [JetpackAuthUtil getJetpackUsernameForBlog:blog]];
+        if (blog.jetpackUsername) {
+            cell.detailTextLabel.text = [NSString stringWithFormat:NSLocalizedString(@"Connected as %@", @"Connected to jetpack as the specified usernaem"), blog.jetpackUsername];
         } else {
             cell.detailTextLabel.text = NSLocalizedString(@"Not connected", @"Jetpack is not connected yet.");
         }
@@ -483,15 +480,19 @@
     
     NSString *uname = usernameTextField.text;
     NSString *pwd = passwordTextField.text;
+    [SVProgressHUD showWithStatus:NSLocalizedString(@"Authenticating", @"") maskType:SVProgressHUDMaskTypeBlack];
     [WordPressApi guessXMLRPCURLForSite:urlToValidate success:^(NSURL *xmlrpcURL) {
         WordPressApi *api = [WordPressApi apiWithXMLRPCEndpoint:xmlrpcURL username:uname password:pwd];
         [api getBlogsWithSuccess:^(NSArray *blogs) {
+            [SVProgressHUD dismiss];
             subsites = blogs;
             [self validationSuccess:[xmlrpcURL absoluteString]];
         } failure:^(NSError *error) {
+            [SVProgressHUD dismiss];
             [self validationDidFail:error];
         }];
     } failure:^(NSError *error){
+        [SVProgressHUD dismiss];
         if ([error.domain isEqual:NSURLErrorDomain] && error.code == NSURLErrorUserCancelledAuthentication) {
             [self validationDidFail:nil];
         } else {
@@ -643,7 +644,6 @@
         
         [self.tableView setTableFooterView:aView];
     }
-    
 	[savingIndicator setHidden:NO];
 	[savingIndicator startAnimating];
 
@@ -659,7 +659,7 @@
                 NSMutableDictionary *updatedPreference = nil;
                 int i=0;
                 BOOL hasMatch = NO;
-                NSNumber *blogID = [blog isWPcom] ? blog.blogID : [blog jetpackClientID];
+                NSNumber *blogID = [blog isWPcom] ? blog.blogID : [blog jetpackBlogID];
                 for ( ; i < [mutedBlogsArray count]; i++) {
                     updatedPreference = [[mutedBlogsArray objectAtIndex:i] mutableCopy];
                     NSString *currentblogID = [updatedPreference objectForKey:@"blog_id"];
@@ -739,7 +739,7 @@
     if (_notificationPreferences) {
         NSDictionary *mutedBlogsDictionary = [_notificationPreferences objectForKey:@"muted_blogs"];
         NSArray *mutedBlogsArray = [mutedBlogsDictionary objectForKey:@"value"];
-        NSNumber *blogID = [blog isWPcom] ? blog.blogID : [blog jetpackClientID];
+        NSNumber *blogID = [blog isWPcom] ? blog.blogID : [blog jetpackBlogID];
         for(NSDictionary *currentBlog in mutedBlogsArray ){
             NSString *currentBlogID = [currentBlog objectForKey:@"blog_id"];
             if( [blogID intValue] == [currentBlogID intValue]  ) {
