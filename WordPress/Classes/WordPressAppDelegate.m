@@ -290,7 +290,7 @@
         return YES;
     }
 
-    if ([[WPComOAuthController sharedController] handleOpenURL:url]) {
+    if ([WordPressApi handleOpenURL:url]) {
         return YES;
     }
 
