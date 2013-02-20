@@ -1,5 +1,5 @@
 //
-//  AFAuthenticationAlertView.h
+//  WPHTTPAuthenticationAlertView.h
 //  WordPress
 //
 //  Created by Jorge Bernal on 3/15/12.
@@ -9,6 +9,6 @@
 #import <UIKit/UIKit.h>
 #import "AFHTTPRequestOperation.h"
 
-@interface AFAuthenticationAlertView : UIAlertView
+@interface WPHTTPAuthenticationAlertView : UIAlertView
 - (id)initWithChallenge:(NSURLAuthenticationChallenge *)challenge;
 @end

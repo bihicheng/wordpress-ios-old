@@ -4,9 +4,9 @@
 //
 //  Created by Chris Boyd on 7/23/10.
 
+#import <WordPressApi/WordPressApi.h>
 #import "EditSiteViewController.h"
 #import "NSURL+IDN.h"
-#import "WordPressApi.h"
 #import "WordPressComApi.h"
 #import "SFHFKeychainUtils.h"
 #import "UIBarButtonItem+Styled.h"
@@ -484,8 +484,8 @@
     
     NSString *uname = usernameTextField.text;
     NSString *pwd = passwordTextField.text;
-    [WordPressApi guessXMLRPCURLForSite:urlToValidate success:^(NSURL *xmlrpcURL) {
-        WordPressApi *api = [WordPressApi apiWithXMLRPCEndpoint:xmlrpcURL username:uname password:pwd];
+    [WordPressXMLRPCApi guessXMLRPCURLForSite:urlToValidate success:^(NSURL *xmlrpcURL) {
+        WordPressXMLRPCApi *api = [WordPressXMLRPCApi apiWithXMLRPCEndpoint:xmlrpcURL username:uname password:pwd];
         [api getBlogsWithSuccess:^(NSArray *blogs) {
             subsites = blogs;
             [self validationSuccess:[xmlrpcURL absoluteString]];

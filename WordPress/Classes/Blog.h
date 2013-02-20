@@ -8,7 +8,8 @@
 #import <Foundation/Foundation.h>
 #import <CommonCrypto/CommonDigest.h>
 #import <CoreData/CoreData.h>
-#import "WordPressApi.h"
+#import <WordPressApi/WordPressApi.h>
+
 #import "Reachability.h"
 
 #define BlogChangedNotification @"BlogChangedNotification"

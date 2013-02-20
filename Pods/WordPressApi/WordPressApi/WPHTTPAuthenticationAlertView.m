@@ -1,14 +1,14 @@
 //
-//  AFAuthenticationAlertView.m
+//  WPHTTPAuthenticationAlertView.m
 //  WordPress
 //
 //  Created by Jorge Bernal on 3/15/12.
 //  Copyright (c) 2012 WordPress. All rights reserved.
 //
 
-#import "AFAuthenticationAlertView.h"
+#import "WPHTTPAuthenticationAlertView.h"
 
-@implementation AFAuthenticationAlertView {
+@implementation WPHTTPAuthenticationAlertView {
     NSURLAuthenticationChallenge *_challenge;
     UITextField *usernameField, *passwordField;
 }

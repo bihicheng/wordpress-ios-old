@@ -14,13 +14,14 @@
 
 #import "WPXMLRPCRequest.h"
 #import "WPXMLRPCRequestOperation.h"
-#import "AFAuthenticationAlertView.h"
+#import "WPHTTPAuthenticationAlertView.h"
 
 #ifndef WPFLog
 #define WPFLog(...) NSLog(__VA_ARGS__)
 #endif
 
-static NSUInteger const kAFXMLRPCClientDefaultMaxConcurrentOperationCount = 4;
+NSString *const WPXMLRPCClientErrorDomain = @"XMLRPC";
+static NSUInteger const WPXMLRPCClientDefaultMaxConcurrentOperationCount = 4;
 
 @interface WPXMLRPCClient ()
 @property (readwrite, nonatomic, strong) NSURL *xmlrpcEndpoint;
@@ -41,24 +42,24 @@ static NSUInteger const kAFXMLRPCClientDefaultMaxConcurrentOperationCount = 4;
     if (!self) {
         return nil;
     }
-    
+
     self.xmlrpcEndpoint = xmlrpcEndpoint;
-    
+
     self.defaultHeaders = [NSMutableDictionary dictionary];
-    
+
 	// Accept-Encoding HTTP Header; see http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.3
 	[self setDefaultHeader:@"Accept-Encoding" value:@"gzip"];
     [self setDefaultHeader:@"Content-Type" value:@"text/xml"];
-    
+
     NSString *applicationUserAgent = [[NSUserDefaults standardUserDefaults] objectForKey:@"UserAgent"];
     if (applicationUserAgent) {
         [self setDefaultHeader:@"User-Agent" value:applicationUserAgent];
     } else {
         [self setDefaultHeader:@"User-Agent" value:[NSString stringWithFormat:@"%@/%@ (%@, %@ %@, %@, Scale/%f)", [[[NSBundle mainBundle] infoDictionary] objectForKey:(NSString *)kCFBundleIdentifierKey], [[[NSBundle mainBundle] infoDictionary] objectForKey:(NSString *)kCFBundleVersionKey], @"unknown", [[UIDevice currentDevice] systemName], [[UIDevice currentDevice] systemVersion], [[UIDevice currentDevice] model], ([[UIScreen mainScreen] respondsToSelector:@selector(scale)] ? [[UIScreen mainScreen] scale] : 1.0)]];
     }
-    
+
     self.operationQueue = [[NSOperationQueue alloc] init];
-	[self.operationQueue setMaxConcurrentOperationCount:kAFXMLRPCClientDefaultMaxConcurrentOperationCount];
+	[self.operationQueue setMaxConcurrentOperationCount:WPXMLRPCClientDefaultMaxConcurrentOperationCount];
 
     return self;
 }
@@ -89,10 +90,10 @@ static NSUInteger const kAFXMLRPCClientDefaultMaxConcurrentOperationCount = 4;
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:self.xmlrpcEndpoint];
     [request setHTTPMethod:@"POST"];
     [request setAllHTTPHeaderFields:self.defaultHeaders];
-    
+
     WPXMLRPCEncoder *encoder = [[WPXMLRPCEncoder alloc] initWithMethod:method andParameters:parameters];
     [request setHTTPBody:encoder.body];
-    
+
     return request;
 }
 
@@ -101,58 +102,48 @@ static NSUInteger const kAFXMLRPCClientDefaultMaxConcurrentOperationCount = 4;
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:self.xmlrpcEndpoint];
     [request setHTTPMethod:@"POST"];
     [request setAllHTTPHeaderFields:self.defaultHeaders];
-    
+
     WPXMLRPCEncoder *encoder = [[WPXMLRPCEncoder alloc] initWithMethod:method andParameters:parameters];
     [request setHTTPBodyStream:encoder.bodyStream];
     [request setValue:[NSString stringWithFormat:@"%d", encoder.contentLength] forHTTPHeaderField:@"Content-Length"];
-    
-    return request;    
-}
-
-- (WPXMLRPCRequest *)XMLRPCRequestWithMethod:(NSString *)method
-                                  parameters:(NSArray *)parameters {
-    WPXMLRPCRequest *request = [[WPXMLRPCRequest alloc] init];
-    request.method = method;
-    request.parameters = parameters;
 
     return request;
 }
 
+- (WPXMLRPCRequest *)XMLRPCRequestWithMethod:(NSString *)method
+                                  parameters:(NSArray *)parameters {
+    return [[WPXMLRPCRequest alloc] initWithMethod:method andParameters:parameters];
+}
+
 #pragma mark - Creating HTTP Operations
 
-- (AFHTTPRequestOperation *)HTTPRequestOperationWithRequest:(NSURLRequest *)request 
+- (AFHTTPRequestOperation *)HTTPRequestOperationWithRequest:(NSURLRequest *)request
                                                     success:(void (^)(AFHTTPRequestOperation *operation, id responseObject))success
                                                     failure:(void (^)(AFHTTPRequestOperation *operation, NSError *error))failure {
     AFHTTPRequestOperation *operation = [[AFHTTPRequestOperation alloc] initWithRequest:request];
-    
+
     BOOL extra_debug_on = getenv("WPDebugXMLRPC") ? YES : NO;
 #ifndef DEBUG
     NSNumber *extra_debug = [[NSUserDefaults standardUserDefaults] objectForKey:@"extra_debug"];
     if ([extra_debug boolValue]) extra_debug_on = YES;
 #endif
-    
+
     void (^xmlrpcSuccess)(AFHTTPRequestOperation *, id) = ^(AFHTTPRequestOperation *operation, id responseObject) {
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void) {
             WPXMLRPCDecoder *decoder = [[WPXMLRPCDecoder alloc] initWithData:responseObject];
             NSError *err = nil;
             if ( extra_debug_on == YES ) {
-                 WPFLog(@"[XML-RPC] < %@", operation.responseString);
+                WPFLog(@"[XML-RPC] < %@", operation.responseString);
             }
-            
-            if ([decoder isFault]) {
-                NSDictionary *usrInfo = [NSDictionary dictionaryWithObjectsAndKeys:[decoder faultString], NSLocalizedDescriptionKey, nil];
-                err = [NSError errorWithDomain:@"XMLRPC" code:[[decoder faultCode] intValue] userInfo:usrInfo];
+
+            if ([decoder isFault] || [decoder object] == nil) {
+                err = [decoder error];
             }
-            
-            if ([decoder object] == nil) {
-                NSDictionary *usrInfo = [NSDictionary dictionaryWithObjectsAndKeys:NSLocalizedString(@"Blog returned invalid data.", @""), NSLocalizedDescriptionKey, nil];
-                err = [NSError errorWithDomain:@"XMLRPC" code:kNoXMLPrefix userInfo:usrInfo];
-                    // Log the whole response for "invalid data"
-                if ( extra_debug_on == YES ) {
-                    WPFLog(@"Blog returned invalid data (URL: %@)\n%@", request.URL.absoluteString, operation.responseString);
-                }
+
+            if ([decoder object] == nil && extra_debug_on) {
+                WPFLog(@"Blog returned invalid data (URL: %@)\n%@", request.URL.absoluteString, operation.responseString);
             }
-            
+
             id object = [[decoder object] copy];
 
             dispatch_async(dispatch_get_main_queue(), ^(void) {
@@ -166,15 +157,15 @@ static NSUInteger const kAFXMLRPCClientDefaultMaxConcurrentOperationCount = 4;
                     }
                 }
             });
-        });        
+        });
     };
     void (^xmlrpcFailure)(AFHTTPRequestOperation *, NSError *) = ^(AFHTTPRequestOperation *operation, NSError *error) {
-         if ( extra_debug_on == YES ) {
+        if ( extra_debug_on == YES ) {
             WPFLog(@"[XML-RPC] ! %@", [error localizedDescription]);
         }
 
         if (failure) {
-            failure(operation, [WPError errorWithResponse:operation.response error:error]);
+            failure(operation, error);
         }
     };
     [operation setCompletionBlockWithSuccess:xmlrpcSuccess failure:xmlrpcFailure];
@@ -185,7 +176,7 @@ static NSUInteger const kAFXMLRPCClientDefaultMaxConcurrentOperationCount = 4;
             OSStatus certificateStatus = SecTrustEvaluate(challenge.protectionSpace.serverTrust, &result);
             if (certificateStatus == 0 && result == kSecTrustResultRecoverableTrustFailure) {
                 dispatch_async(dispatch_get_main_queue(), ^(void) {
-                    AFAuthenticationAlertView *alert = [[AFAuthenticationAlertView alloc] initWithChallenge:challenge];
+                    WPHTTPAuthenticationAlertView *alert = [[WPHTTPAuthenticationAlertView alloc] initWithChallenge:challenge];
                     [alert show];
                 });
             } else {
@@ -198,7 +189,7 @@ static NSUInteger const kAFXMLRPCClientDefaultMaxConcurrentOperationCount = 4;
                 [[challenge sender] useCredential:credential forAuthenticationChallenge:challenge];
             } else {
                 dispatch_async(dispatch_get_main_queue(), ^(void) {
-                    AFAuthenticationAlertView *alert = [[AFAuthenticationAlertView alloc] initWithChallenge:challenge];
+                    WPHTTPAuthenticationAlertView *alert = [[WPHTTPAuthenticationAlertView alloc] initWithChallenge:challenge];
                     [alert show];
                 });
             }
@@ -226,7 +217,7 @@ static NSUInteger const kAFXMLRPCClientDefaultMaxConcurrentOperationCount = 4;
             WPFLog(@"[XML-RPC] > %@", methodName);
         }
     }
-    
+
     return operation;
 }
 
@@ -237,13 +228,13 @@ static NSUInteger const kAFXMLRPCClientDefaultMaxConcurrentOperationCount = 4;
     operation.XMLRPCRequest = request;
     operation.success = success;
     operation.failure = failure;
-    
+
     return operation;
 }
 
 - (AFHTTPRequestOperation *)combinedHTTPRequestOperationWithOperations:(NSArray *)operations success:(void (^)(AFHTTPRequestOperation *operation, id responseObject))success failure:(void (^)(AFHTTPRequestOperation *operation, NSError *error))failure {
     NSMutableArray *parameters = [NSMutableArray array];
-    
+
     for (WPXMLRPCRequestOperation *operation in operations) {
         NSDictionary *param = [NSDictionary dictionaryWithObjectsAndKeys:
                                operation.XMLRPCRequest.method, @"methodName",
@@ -251,30 +242,30 @@ static NSUInteger const kAFXMLRPCClientDefaultMaxConcurrentOperationCount = 4;
                                nil];
         [parameters addObject:param];
     }
-    
+
     NSURLRequest *request = [self requestWithMethod:@"system.multicall" parameters:parameters];
     void (^_success)(AFHTTPRequestOperation *operation, id responseObject) = ^(AFHTTPRequestOperation *multicallOperation, id responseObject) {
         NSArray *responses = (NSArray *)responseObject;
         for (int i = 0; i < [responses count]; i++) {
             WPXMLRPCRequestOperation *operation = [operations objectAtIndex:i];
             id object = [responses objectAtIndex:i];
-            
+
             NSError *error = nil;
             if ([object isKindOfClass:[NSDictionary class]] && [object objectForKey:@"faultCode"] && [object objectForKey:@"faultString"]) {
                 NSDictionary *usrInfo = [NSDictionary dictionaryWithObjectsAndKeys:[object objectForKey:@"faultString"], NSLocalizedDescriptionKey, nil];
-                error = [NSError errorWithDomain:@"XMLRPC" code:[[object objectForKey:@"faultCode"] intValue] userInfo:usrInfo];
+                error = [NSError errorWithDomain:WPXMLRPCClientErrorDomain code:[[object objectForKey:@"faultCode"] intValue] userInfo:usrInfo];
             } else if ([object isKindOfClass:[NSArray class]] && [object count] == 1) {
                 object = [object objectAtIndex:0];
             }
 
-            
+
             if (error) {
                 if (operation.failure) {
-                    operation.failure(operation, error);
+                    operation.failure(multicallOperation, error);
                 }
             } else {
                 if (operation.success) {
-                    operation.success(operation, object);
+                    operation.success(multicallOperation, object);
                 }
             }
         }
@@ -285,7 +276,7 @@ static NSUInteger const kAFXMLRPCClientDefaultMaxConcurrentOperationCount = 4;
     void (^_failure)(AFHTTPRequestOperation *operation, NSError *error) = ^(AFHTTPRequestOperation *multicallOperation, NSError *error) {
         for (WPXMLRPCRequestOperation *operation in operations) {
             if (operation.failure) {
-                operation.failure(operation, error);
+                operation.failure(multicallOperation, error);
             }
         }
         if (failure) {

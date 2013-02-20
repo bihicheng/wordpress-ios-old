@@ -8,7 +8,7 @@
 
 #import "BetaFeedbackViewController.h"
 #import <QuartzCore/QuartzCore.h>
-#import "WPXMLRPCClient.h"
+#import <WordPressApi/WordPressApi.h>
 
 @implementation BetaFeedbackViewController
 

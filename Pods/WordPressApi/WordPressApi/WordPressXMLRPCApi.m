@@ -1,32 +1,41 @@
+// WordPressApi.h
 //
-//  WordPressApi.m
-//  WordPress
+// Copyright (c) 2011 Automattic.
 //
-//  Created by Jorge Bernal on 1/5/12.
-//  Copyright (c) 2012 WordPress. All rights reserved.
-//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
-#import <CTidy.h>
-#import "WordPressApi.h"
-#import "AFHTTPRequestOperation.h"
+
+#import "WordPressXMLRPCApi.h"
 #import "WPXMLRPCClient.h"
 #import "WPRSDParser.h"
 
-#ifndef WPFLog
-#define WPFLog(...) NSLog(__VA_ARGS__)
-#endif
+@interface WordPressXMLRPCApi ()
+@property (readwrite, nonatomic, retain) NSURL *xmlrpc;
+@property (readwrite, nonatomic, retain) NSString *username;
+@property (readwrite, nonatomic, retain) NSString *password;
+@property (readwrite, nonatomic, retain) WPXMLRPCClient *client;
 
-@interface WordPressApi ()
-@property (readwrite, nonatomic, strong) NSURL *xmlrpc;
-@property (readwrite, nonatomic, strong) NSString *username;
-@property (readwrite, nonatomic, strong) NSString *password;
-@property (readwrite, nonatomic, strong) WPXMLRPCClient *client;
-+ (void)validateXMLRPCUrl:(NSURL *)url success:(void (^)())success failure:(void (^)(NSError *error))failure;
-+ (void)logExtraInfo:(NSString *)format, ...;
+- (NSArray *)buildParametersWithExtra:(id)extra;
+
 @end
 
-
-@implementation WordPressApi {
+@implementation WordPressXMLRPCApi {
     NSURL *_xmlrpc;
     NSString *_username;
     NSString *_password;
@@ -37,10 +46,9 @@
 @synthesize password = _password;
 @synthesize client = _client;
 
-+ (WordPressApi *)apiWithXMLRPCEndpoint:(NSURL *)xmlrpc username:(NSString *)username password:(NSString *)password {
++ (WordPressXMLRPCApi *)apiWithXMLRPCEndpoint:(NSURL *)xmlrpc username:(NSString *)username password:(NSString *)password {
     return [[self alloc] initWithXMLRPCEndpoint:xmlrpc username:username password:password];
 }
-
 
 - (id)initWithXMLRPCEndpoint:(NSURL *)xmlrpc username:(NSString *)username password:(NSString *)password
 {
@@ -58,15 +66,23 @@
     return self;
 }
 
-
 #pragma mark - Authentication
 
-- (void)authenticateWithSuccess:(void (^)())success failure:(void (^)(NSError *error))failure {
-    [self getBlogsWithSuccess:^(NSArray *blogs) {
-        if (success) {
-            success();
-        }
-    } failure:failure];
+
+- (void)authenticateWithSuccess:(void (^)())success
+                        failure:(void (^)(NSError *error))failure {
+    NSArray *parameters = [NSArray arrayWithObjects:self.username, self.password, nil];
+    [self.client callMethod:@"wp.getUsersBlogs"
+                 parameters:parameters
+                    success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                        if (success) {
+                            success();
+                        }
+                    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                        if (failure) {
+                            failure(error);
+                        }
+                    }];
 }
 
 - (void)getBlogsWithSuccess:(void (^)(NSArray *blogs))success failure:(void (^)(NSError *error))failure {
@@ -83,6 +99,72 @@
                     }];
 }
 
+#pragma mark - Publishing a post
+
+- (void)publishPostWithText:(NSString *)content title:(NSString *)title success:(void (^)(NSUInteger, NSURL *))success failure:(void (^)(NSError *))failure {
+    NSDictionary *postParameters = [NSDictionary dictionaryWithObjectsAndKeys:
+                                    title, @"post_title",
+                                    content, @"post_content",
+                                    @"publish", @"post_status",
+                                    nil];
+    NSArray *parameters = [self buildParametersWithExtra:postParameters];
+    [self.client callMethod:@"wp.newPost"
+                 parameters:parameters
+                    success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                        if (success) {
+                            success([responseObject intValue], nil);
+                        }
+                    }
+                    failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                        if (failure) {
+                            failure(error);
+                        }
+                    }];
+}
+
+- (void)publishPostWithImage:(UIImage *)image
+                 description:(NSString *)content
+                       title:(NSString *)title
+                     success:(void (^)(NSUInteger postId, NSURL *permalink))success
+                     failure:(void (^)(NSError *error))failure {
+    [self publishPostWithText:content title:title success:success failure:failure];
+}
+
+- (void)publishPostWithGallery:(NSArray *)images
+                   description:(NSString *)content
+                         title:(NSString *)title
+                       success:(void (^)(NSUInteger postId, NSURL *permalink))success
+                       failure:(void (^)(NSError *error))failure {
+    [self publishPostWithText:content title:title success:success failure:failure];
+}
+
+- (void)publishPostWithVideo:(NSString *)videoPath
+                 description:(NSString *)content
+                       title:(NSString *)title
+                     success:(void (^)(NSUInteger postId, NSURL *permalink))success
+                     failure:(void (^)(NSError *error))failure {
+    [self publishPostWithText:content title:title success:success failure:failure];
+}
+
+#pragma mark - Managing posts
+
+- (void)getPosts:(NSUInteger)count
+         success:(void (^)(NSArray *posts))success
+         failure:(void (^)(NSError *error))failure {
+    NSArray *parameters = [self buildParametersWithExtra:nil];
+    [self.client callMethod:@"metaWeblog.getRecentPosts"
+                 parameters:parameters
+                    success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                        if (success) {
+                            success((NSArray *)responseObject);
+                        }
+                    }
+                    failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                        if (failure) {
+                            failure(error);
+                        }
+                    }];
+}
 
 #pragma mark - Helpers
 
@@ -100,19 +182,19 @@
         [self logExtraInfo: [error localizedDescription] ];
         return failure ? failure(error) : nil;
     }
-    
+
     // ------------------------------------------------------------------------
     // 1. Assume the given url is the home page and XML-RPC sits at /xmlrpc.php
     // ------------------------------------------------------------------------
     [self logExtraInfo: @"1. Assume the given url is the home page and XML-RPC sits at /xmlrpc.php" ];
     if(![url hasPrefix:@"http"])
         url = [NSString stringWithFormat:@"http://%@", url];
-    
+
     if ([url hasSuffix:@"xmlrpc.php"])
         xmlrpc = url;
     else
         xmlrpc = [NSString stringWithFormat:@"%@/xmlrpc.php", url];
-    
+
     xmlrpcURL = [NSURL URLWithString:xmlrpc];
     if (xmlrpcURL == nil) {
         // Not a valid URL. Could be a bad protocol (htpp://), syntax error (http//), ...
@@ -161,7 +243,7 @@
                 if (responseString == nil && operation.responseData != nil) {
                     responseString = [[NSString alloc] initWithData:operation.responseData encoding:NSISOLatin1StringEncoding];
                 }
-                NSArray *matches;
+                NSArray *matches = nil;
                 if (responseString) {
                     matches = [rsdURLRegExp matchesInString:responseString options:0 range:NSMakeRange(0, [responseString length])];
                 }
@@ -177,9 +259,27 @@
                     [self logExtraInfo:@"The RSD link not found using RegExp, on the following doc: %@", responseString];
                     [self logExtraInfo:@"Try to find it again on a cleaned HTML document"];
                     NSError *htmlError;
-                    CTidy *tidy = [CTidy tidy];
-                    NSData *cleanedData = [tidy tidyData:operation.responseData inputFormat:CTidyFormatXML outputFormat:CTidyFormatXML encoding:@"utf8" diagnostics:nil error:&htmlError];
-                    NSString *cleanedHTML = [[NSString alloc] initWithData:cleanedData encoding:NSUTF8StringEncoding];
+
+                    NSString *cleanedHTML = nil;
+                    id _CTidyClass = NSClassFromString(@"CTidy");
+                    SEL _CTidySelector = NSSelectorFromString(@"tidy");
+                    SEL _CTidyTidyStringSelector = NSSelectorFromString(@"tidyString:inputFormat:outputFormat:encoding:diagnostics:error:");
+
+                    if (_CTidyClass && [_CTidyClass respondsToSelector:_CTidySelector]) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+                        id _CTidyInstance = [_CTidyClass performSelector:_CTidySelector];
+#pragma clang diagnostic pop
+
+                        if (_CTidyInstance && [_CTidyInstance respondsToSelector:_CTidyTidyStringSelector]) {
+                            typedef NSString *(*_CTidyTidyStringMethodType)(id, SEL, NSString *, int, int, NSString *, NSError **);
+                            _CTidyTidyStringMethodType _CTidyTidyStringMethod;
+                            _CTidyTidyStringMethod = (_CTidyTidyStringMethodType)[_CTidyInstance methodForSelector:_CTidyTidyStringSelector];
+
+                            cleanedHTML = _CTidyTidyStringMethod(_CTidyInstance, _CTidyTidyStringSelector, operation.responseString, 1, 1, @"utf8", &htmlError);
+                        }
+                    }
+
                     if(cleanedHTML) {
                         [self logExtraInfo:@"The cleaned doc: %@", cleanedHTML];
                         NSArray *matches = [rsdURLRegExp matchesInString:cleanedHTML options:0 range:NSMakeRange(0, [cleanedHTML length])];
@@ -188,14 +288,14 @@
                             if (rsdURLRange.location != NSNotFound)
                                 rsdURL = [cleanedHTML substringWithRange:rsdURLRange];
                         }
-                    } else {
-                         [self logExtraInfo:@"The cleaning function reported the following error: %@", [htmlError localizedDescription]];
+                    } else if (_CTidyClass) {
+                        [self logExtraInfo:@"The cleaning function reported the following error: %@", [htmlError localizedDescription]];
                     }
                 }
-                
+
                 if (rsdURL != nil) {
                     void (^parseBlock)(void) = ^() {
-                         [self logExtraInfo:@"5. Parse the RSD document at the following URL: %@", rsdURL];
+                        [self logExtraInfo:@"5. Parse the RSD document at the following URL: %@", rsdURL];
                         // -------------------------
                         // 5. Parse the RSD document
                         // -------------------------
@@ -226,7 +326,7 @@
                         [queue addOperation:operation];
                     };
                     // ----------------------------------------------------------------------------
-                    // 4. Try removing "?rsd" from the url, it should point to the XML-RPC endpoint         
+                    // 4. Try removing "?rsd" from the url, it should point to the XML-RPC endpoint
                     // ----------------------------------------------------------------------------
                     xmlrpc = [rsdURL stringByReplacingOccurrencesOfString:@"?rsd" withString:@""];
                     if (![xmlrpc isEqualToString:rsdURL]) {
@@ -252,10 +352,23 @@
             NSOperationQueue *queue = [[NSOperationQueue alloc] init];
             [queue addOperation:operation];
         }];
-    }];
-}
+    }];}
 
 #pragma mark - Private Methods
+
+- (NSArray *)buildParametersWithExtra:(id)extra {
+    NSMutableArray *result = [NSMutableArray array];
+    [result addObject:@"1"];
+    [result addObject:self.username];
+    [result addObject:self.password];
+    if ([extra isKindOfClass:[NSArray class]]) {
+        [result addObjectsFromArray:extra];
+    } else if ([extra isKindOfClass:[NSDictionary class]]) {
+        [result addObject:extra];
+    }
+    
+    return [NSArray arrayWithArray:result];
+}
 
 + (void)validateXMLRPCUrl:(NSURL *)url success:(void (^)())success failure:(void (^)(NSError *error))failure {
     WPXMLRPCClient *client = [WPXMLRPCClient clientWithXMLRPCEndpoint:url];
@@ -277,17 +390,17 @@
     NSNumber *extra_debug = [[NSUserDefaults standardUserDefaults] objectForKey:@"extra_debug"];
     if ([extra_debug boolValue]) {
         extraDebugIsActive = YES;
-    } 
-    #ifdef DEBUG
-        extraDebugIsActive = YES; 
-    #endif 
-    
+    }
+#ifdef DEBUG
+    extraDebugIsActive = YES;
+#endif
+
     if( extraDebugIsActive == NO ) return;
-    
+
     va_list ap;
 	va_start(ap, format);
 	NSString *message = [[NSString alloc] initWithFormat:format arguments:ap];
-    WPFLog(@"[WordPressApi] < %@", message);
+    NSLog(@"[WordPressApi] < %@", message);
 }
 
 @end
