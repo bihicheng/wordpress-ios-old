@@ -8,7 +8,7 @@
 
 #import "NotificationSettingsViewController.h"
 #import "SFHFKeychainUtils.h"
-#import "AFXMLRPCClient.h"
+#import "WPXMLRPCClient.h"
 #import "EGORefreshTableHeaderView.h"
 #import "WordPressAppDelegate.h"
 #import "WordPressComApi.h"

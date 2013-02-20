@@ -9,26 +9,12 @@
 #import <Foundation/Foundation.h>
 #import <AFNetworking/AFNetworking.h>
 
-#define kAllHTTPOperationsCancelledNotification @"kAllHTTPOperationsCancelledNotification"
-
-typedef void (^AFXMLRPCRequestOperationSuccessBlock)(AFHTTPRequestOperation *operation, id responseObject);
-typedef void (^AFXMLRPCRequestOperationFailureBlock)(AFHTTPRequestOperation *operation, NSError *error);
-
-@interface AFXMLRPCRequest : NSObject
-@property (nonatomic, strong) NSString *method;
-@property (nonatomic, strong) NSArray *parameters;
-@end
-
-@interface AFXMLRPCRequestOperation : AFHTTPRequestOperation
-@property (nonatomic, strong) AFXMLRPCRequest *XMLRPCRequest;
-@property (nonatomic, copy) AFXMLRPCRequestOperationSuccessBlock success;
-@property (nonatomic, copy) AFXMLRPCRequestOperationFailureBlock failure;
-@end
+@class WPXMLRPCRequestOperation, WPXMLRPCRequest;
 
 /**
  `AFXMLRPCClient` binds together AFNetworking and eczarny's XML-RPC library to interact with XML-RPC based APIs
  */
-@interface AFXMLRPCClient : NSObject
+@interface WPXMLRPCClient : NSObject
 
 ///---------------------------------------
 /// @name Accessing HTTP Client Properties
@@ -55,7 +41,7 @@ typedef void (^AFXMLRPCRequestOperationFailureBlock)(AFHTTPRequestOperation *ope
  
  @return The newly-initialized XML-RPC client
  */
-+ (AFXMLRPCClient *)clientWithXMLRPCEndpoint:(NSURL *)xmlrpcEndpoint;
++ (WPXMLRPCClient *)clientWithXMLRPCEndpoint:(NSURL *)xmlrpcEndpoint;
 
 /**
  Initializes an `AFXMLRPCClient` object with the specified base URL.
@@ -133,7 +119,7 @@ typedef void (^AFXMLRPCRequestOperationFailureBlock)(AFHTTPRequestOperation *ope
  
  @return An `AFXMLRPCRequest` object 
  */
-- (AFXMLRPCRequest *)XMLRPCRequestWithMethod:(NSString *)method
+- (WPXMLRPCRequest *)XMLRPCRequestWithMethod:(NSString *)method
                                   parameters:(NSArray *)parameters;
 
 ///-------------------------------
@@ -148,8 +134,8 @@ typedef void (^AFXMLRPCRequestOperationFailureBlock)(AFHTTPRequestOperation *ope
  @param failure A block object to be executed when the request operation finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the resonse data. This block has no return value and takes two arguments:, the created request operation and the `NSError` object describing the network or parsing error that occurred.
  */
 - (AFHTTPRequestOperation *)HTTPRequestOperationWithRequest:(NSURLRequest *)request 
-                                                    success:(AFXMLRPCRequestOperationSuccessBlock)success
-                                                    failure:(AFXMLRPCRequestOperationFailureBlock)failure;
+                                                    success:(void (^)(AFHTTPRequestOperation *operation, id responseObject))success
+                                                    failure:(void (^)(AFHTTPRequestOperation *operation, NSError *error))failure;
 
 /**
  Creates an `AFXMLRPCRequestOperation`
@@ -158,9 +144,9 @@ typedef void (^AFXMLRPCRequestOperationFailureBlock)(AFHTTPRequestOperation *ope
  @param success A block object to be executed when the request operation finishes successfully. This block has no return value and takes two arguments: the created request operation and the object created from the response data of request.
  @param failure A block object to be executed when the request operation finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the resonse data. This block has no return value and takes two arguments:, the created request operation and the `NSError` object describing the network or parsing error that occurred.
  */
-- (AFXMLRPCRequestOperation *)XMLRPCRequestOperationWithRequest:(AFXMLRPCRequest *)request
-                                                        success:(AFXMLRPCRequestOperationSuccessBlock)success
-                                                        failure:(AFXMLRPCRequestOperationFailureBlock)failure;
+- (WPXMLRPCRequestOperation *)XMLRPCRequestOperationWithRequest:(WPXMLRPCRequest *)request
+                                                        success:(void (^)(AFHTTPRequestOperation *operation, id responseObject))success
+                                                        failure:(void (^)(AFHTTPRequestOperation *operation, NSError *error))failure;
 
 /**
  Creates an `AFHTTPRequestOperation` combining multiple XML-RPC calls in a single request using `system.multicall`
@@ -169,7 +155,9 @@ typedef void (^AFXMLRPCRequestOperationFailureBlock)(AFHTTPRequestOperation *ope
  @param success A block object to be executed when the request operation finishes successfully. This block has no return value and takes two arguments: the created request operation and the object created from the response data of request.
  @param failure A block object to be executed when the request operation finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the resonse data. This block has no return value and takes two arguments:, the created request operation and the `NSError` object describing the network or parsing error that occurred.
  */
-- (AFHTTPRequestOperation *)combinedHTTPRequestOperationWithOperations:(NSArray *)operations success:(AFXMLRPCRequestOperationSuccessBlock)success failure:(AFXMLRPCRequestOperationFailureBlock)failure;
+- (AFHTTPRequestOperation *)combinedHTTPRequestOperationWithOperations:(NSArray *)operations
+                                                               success:(void (^)(AFHTTPRequestOperation *operation, id responseObject))success
+                                                               failure:(void (^)(AFHTTPRequestOperation *operation, NSError *error))failure;
 
 ///----------------------------------------
 /// @name Managing Enqueued HTTP Operations
@@ -187,7 +175,7 @@ typedef void (^AFXMLRPCRequestOperationFailureBlock)(AFHTTPRequestOperation *ope
  
  @param operation The XML-RPC request operation to be enqueued.
  */
-- (void)enqueueXMLRPCRequestOperation:(AFXMLRPCRequestOperation *)operation;
+- (void)enqueueXMLRPCRequestOperation:(WPXMLRPCRequestOperation *)operation;
 
 /**
  Cancels all operations in the HTTP client's operation queue. 

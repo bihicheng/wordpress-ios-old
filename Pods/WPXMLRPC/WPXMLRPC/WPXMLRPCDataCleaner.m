@@ -1,38 +1,51 @@
+// WPXMLRPCDataCleaner.m
+// Based on code from WordPress for iOS http://ios.wordpress.org/
 //
-//  XMLRPCDataCleaner.m
-//  Based on code from WordPress for iOS http://ios.wordpress.org/
+// Copyright (c) 2013 WordPress - http://wordpress.org/
+// Based on Eric Czarny's xmlrpc library - https://github.com/eczarny/xmlrpc
 //
-//  Created by Jorge Bernal on 12/15/11.
-//  Original code by Danilo Ercoli
-//  Copyright (c) 2011 WordPress.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
-#import "XMLRPCDataCleaner.h"
+#import "WPXMLRPCDataCleaner.h"
 #import <iconv.h>
 
-@interface XMLRPCDataCleaner (CleaningSteps)
+@interface WPXMLRPCDataCleaner (CleaningSteps)
 - (NSData *)cleanInvalidUTF8:(NSData *)str;
 - (NSString *)cleanCharactersBeforePreamble:(NSString *)str;
 - (NSString *)cleanInvalidXMLCharacters:(NSString *)str;
 - (NSString *)cleanWithTidyIfPresent:(NSString *)str;
 @end
 
-@implementation XMLRPCDataCleaner
+@implementation WPXMLRPCDataCleaner {
+    NSData *xmlData;
+}
 
 #pragma mark - initializers
 
 - (id)initWithData:(NSData *)data {
     self = [super init];
     if (self) {
-        xmlData = [data retain];
+        xmlData = data;
     }
     return self;
 }
 
-- (void)dealloc {
-    [xmlData release];
-    [super dealloc];
-}
 
 #pragma mark - clean output
 
@@ -41,7 +54,7 @@
         return nil;
     
     NSData *cleanData = [self cleanInvalidUTF8:xmlData];
-    NSString *cleanString = [[[NSString alloc] initWithData:cleanData encoding:NSUTF8StringEncoding] autorelease];
+    NSString *cleanString = [[NSString alloc] initWithData:cleanData encoding:NSUTF8StringEncoding];
     
     if (cleanString == nil) {
         // Although it shouldn't happen, fall back to Latin1 if data is not proper UTF-8
@@ -59,7 +72,7 @@
 
 @end
 
-@implementation XMLRPCDataCleaner (CleaningSteps)
+@implementation WPXMLRPCDataCleaner (CleaningSteps)
 
 /**
  Runs the given data through iconv to discard any invalid UTF-8 characters
@@ -115,7 +128,7 @@
  Based on http://benjchristensen.com/2008/02/07/how-to-strip-invalid-xml-characters/
  */
 - (NSString *)cleanInvalidXMLCharacters:(NSString *)str {
-    int len = [str length];
+    NSUInteger len = [str length];
 
     NSMutableString *result = [NSMutableString stringWithCapacity:len];
     for( int charIndex = 0; charIndex < len; charIndex++) {
@@ -147,28 +160,19 @@
     SEL _CTidyTidyStringSelector = NSSelectorFromString(@"tidyString:inputFormat:outputFormat:encoding:diagnostics:error:");
     
     if (_CTidyClass && [_CTidyClass respondsToSelector:_CTidySelector]) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
         id _CTidyInstance = [_CTidyClass performSelector:_CTidySelector];
-        
+#pragma clang diagnostic pop
+
         if (_CTidyInstance && [_CTidyInstance respondsToSelector:_CTidyTidyStringSelector]) {
-            NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:[_CTidyInstance methodSignatureForSelector:_CTidyTidyStringSelector]];
-            invocation.target = _CTidyInstance;
-            invocation.selector = _CTidyTidyStringSelector;
-            
-            // arguments 0 and 1 are self and _cmd respectively, automatically set by NSInvocation
-            [invocation setArgument:&str atIndex:2]; // tidyString:
-            int format = 1; // TidyFormat_XML
-            [invocation setArgument:&format atIndex:3]; // inputFormat:
-            [invocation setArgument:&format atIndex:4]; // outputFormat:
-            NSString *encoding = @"utf8";
-            [invocation setArgument:&encoding atIndex:5]; // encoding:
-            // 6 diagnostics: nil
+            typedef NSString *(*_CTidyTidyStringMethodType)(id, SEL, NSString *, int, int, NSString *, NSError **);
+            _CTidyTidyStringMethodType _CTidyTidyStringMethod;
+            _CTidyTidyStringMethod = (_CTidyTidyStringMethodType)[_CTidyInstance methodForSelector:_CTidyTidyStringSelector];
+
             NSError *err = nil;
-            [invocation setArgument:&err atIndex:7]; // error:
-            
-            [invocation invoke];
-            
-            NSString *result = nil;
-            [invocation getReturnValue:&result];
+            NSString *result = _CTidyTidyStringMethod(_CTidyInstance, _CTidyTidyStringSelector, str, 1, 1, @"utf8", &err);
+
             if (result)
                 return result;
         }        

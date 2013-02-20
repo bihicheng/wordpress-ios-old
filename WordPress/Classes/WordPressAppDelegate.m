@@ -795,7 +795,7 @@
                                                         andServiceName:@"WordPress.com"
                                                                  error:&error];
         if (password != nil) {
-            AFXMLRPCClient *client = [AFXMLRPCClient clientWithXMLRPCEndpoint:[NSURL URLWithString:authURL]];
+            WPXMLRPCClient *client = [WPXMLRPCClient clientWithXMLRPCEndpoint:[NSURL URLWithString:authURL]];
             [client callMethod:@"wp.getUsersBlogs"
                     parameters:[NSArray arrayWithObjects:username, password, nil]
                        success:^(AFHTTPRequestOperation *operation, id responseObject) {
@@ -1098,7 +1098,7 @@
 #else
             NSNumber *sandbox = [NSNumber numberWithBool:NO];
 #endif
-            AFXMLRPCClient *api = [[AFXMLRPCClient alloc] initWithXMLRPCEndpoint:[NSURL URLWithString:authURL]];
+            WPXMLRPCClient *api = [[WPXMLRPCClient alloc] initWithXMLRPCEndpoint:[NSURL URLWithString:authURL]];
             
             [api setAuthorizationHeaderWithToken:[[WordPressComApi sharedApi] authToken]];
             
@@ -1144,7 +1144,7 @@
 #else
             NSNumber *sandbox = [NSNumber numberWithBool:NO];
 #endif
-            AFXMLRPCClient *api = [[AFXMLRPCClient alloc] initWithXMLRPCEndpoint:[NSURL URLWithString:authURL]];
+            WPXMLRPCClient *api = [[WPXMLRPCClient alloc] initWithXMLRPCEndpoint:[NSURL URLWithString:authURL]];
             [api setAuthorizationHeaderWithToken:[[WordPressComApi sharedApi] authToken]];
             [api callMethod:@"wpcom.mobile_push_unregister_token"
                  parameters:[NSArray arrayWithObjects:username, password, token, [[UIDevice currentDevice] wordpressIdentifier], @"apple", sandbox, nil]

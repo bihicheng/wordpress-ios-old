@@ -25,7 +25,7 @@
 
 - (NSString *)parsedEndpointWithError:(NSError **)error {
     [_parser parse];
-    *error = _error;
+    if (error) *error = _error;
     return _endpoint;
 }
 

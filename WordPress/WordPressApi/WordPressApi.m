@@ -9,7 +9,7 @@
 #import <CTidy.h>
 #import "WordPressApi.h"
 #import "AFHTTPRequestOperation.h"
-#import "AFXMLRPCClient.h"
+#import "WPXMLRPCClient.h"
 #import "WPRSDParser.h"
 
 #ifndef WPFLog
@@ -20,7 +20,7 @@
 @property (readwrite, nonatomic, strong) NSURL *xmlrpc;
 @property (readwrite, nonatomic, strong) NSString *username;
 @property (readwrite, nonatomic, strong) NSString *password;
-@property (readwrite, nonatomic, strong) AFXMLRPCClient *client;
+@property (readwrite, nonatomic, strong) WPXMLRPCClient *client;
 + (void)validateXMLRPCUrl:(NSURL *)url success:(void (^)())success failure:(void (^)(NSError *error))failure;
 + (void)logExtraInfo:(NSString *)format, ...;
 @end
@@ -30,7 +30,7 @@
     NSURL *_xmlrpc;
     NSString *_username;
     NSString *_password;
-    AFXMLRPCClient *_client;
+    WPXMLRPCClient *_client;
 }
 @synthesize xmlrpc = _xmlrpc;
 @synthesize username = _username;
@@ -53,7 +53,7 @@
     self.username = username;
     self.password = password;
 
-    self.client = [AFXMLRPCClient clientWithXMLRPCEndpoint:xmlrpc];
+    self.client = [WPXMLRPCClient clientWithXMLRPCEndpoint:xmlrpc];
 
     return self;
 }
@@ -258,7 +258,7 @@
 #pragma mark - Private Methods
 
 + (void)validateXMLRPCUrl:(NSURL *)url success:(void (^)())success failure:(void (^)(NSError *error))failure {
-    AFXMLRPCClient *client = [AFXMLRPCClient clientWithXMLRPCEndpoint:url];
+    WPXMLRPCClient *client = [WPXMLRPCClient clientWithXMLRPCEndpoint:url];
     [client callMethod:@"system.listMethods"
             parameters:[NSArray array]
                success:^(AFHTTPRequestOperation *operation, id responseObject) {

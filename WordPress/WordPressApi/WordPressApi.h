@@ -8,6 +8,13 @@
 
 #import <Foundation/Foundation.h>
 
+#ifndef _WORDPRESSAPI
+#define _WORDPRESSAPI
+#import "WPXMLRPCClient.h"
+#import "WPXMLRPCRequest.h"
+#import "WPXMLRPCRequestOperation.h"
+#endif /* _WORDPRESSAPI */
+
 /**
  WordPress API for iOS 
  */

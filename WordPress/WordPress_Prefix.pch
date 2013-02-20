@@ -12,10 +12,7 @@
     #import <MobileCoreServices/MobileCoreServices.h>
 
 	// 3rd Party
-    #import "WPAFNetworking.h"
-	#import "XMLRPCRequest.h"
-	#import "XMLRPCResponse.h"
-	#import "XMLRPCConnection.h"
+    #import <AFNetworking/AFNetworking.h>
     #import "NSObject+BlockObservation.h"
 
 	// Project-specific
@@ -25,11 +22,6 @@
     #import "WPError.h"
     #import "UIColor+Helpers.h"
     #import "PanelNavigationController.h"
-
-#ifdef DEBUG
-#define _AFNETWORKING_ALLOW_INVALID_SSL_CERTIFICATES_
-#else
-#endif
 
 #ifndef IS_IPAD
 #define IS_IPAD   ([UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad)
