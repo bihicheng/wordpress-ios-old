@@ -13,3 +13,8 @@ pod 'SSKeychain',   '~> 0.2'
 pod 'SFHFKeychainUtils', '~> 0.0.1'
 pod 'WPXMLRPC', :podspec => 'https://raw.github.com/wordpress-mobile/wpxmlrpc/master/WPXMLRPC.podspec'
 pod 'WordPressApi', :podspec => 'https://raw.github.com/koke/WordPressApi/master/WordPressApi.podspec'
+pod 'NSObject-SafeExpectations', :podspec => 'https://raw.github.com/koke/NSObject-SafeExpectations/master/NSObject-SafeExpectations.podspec'
+
+target :WordPressTest, :exclusive => true do
+  pod 'OHHTTPStubs', '~> 1.1'
+end

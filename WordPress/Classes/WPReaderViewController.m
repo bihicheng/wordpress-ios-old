@@ -13,6 +13,7 @@
 #import "SFHFKeychainUtils.h"
 #import "JSONKit.h"
 #import "ReachabilityUtils.h"
+#import "NSString+Helpers.h"
 
 #ifdef DEBUG
 #define kReaderRefreshThreshold 10*60 // 10min
@@ -76,10 +77,7 @@ NSString *const WPReaderViewControllerDisplayedFriendFinder = @"displayed friend
         
         self.topicsViewController = [[WPReaderTopicsViewController alloc] initWithNibName:@"WPReaderViewController" bundle:nil];
         self.topicsViewController.delegate = self;
-        if (IS_IPAD)
-            self.detailViewController = [[WPReaderDetailViewController alloc] initWithNibName:@"WPWebViewController-iPad" bundle:nil];
-        else 
-            self.detailViewController = [[WPReaderDetailViewController alloc] initWithNibName:@"WPWebViewController" bundle:nil];
+        self.detailViewController = [[WPReaderDetailViewController alloc] initWithNibName:@"WPWebViewController" bundle:nil];
         self.detailViewController.delegate = self;
 
     }
@@ -364,9 +362,9 @@ NSString *const WPReaderViewControllerDisplayedFriendFinder = @"displayed friend
     NSMutableURLRequest *loginRequest = [[NSMutableURLRequest alloc] initWithURL:loginURL];
     
     NSString *request_body = [NSString stringWithFormat:@"log=%@&pwd=%@&rememberme=forever&redirect_to=%@",
-                              [self.username stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding],
-                              [self.password stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding],
-                              [self.url.absoluteString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+                              [self.username stringByUrlEncoding],
+                              [self.password stringByUrlEncoding],
+                              [self.url.absoluteString stringByUrlEncoding]];
     loginRequest.HTTPBody = [request_body dataUsingEncoding:NSUTF8StringEncoding];
     loginRequest.HTTPMethod = @"POST";
     [loginRequest setValue:[NSString stringWithFormat:@"%d", [request_body length]] forHTTPHeaderField:@"Content-Length"];
@@ -475,12 +473,8 @@ NSString *const WPReaderViewControllerDisplayedFriendFinder = @"displayed friend
         } else if ( [requestedURLAbsoluteString rangeOfString:kMobileReaderFPURL].location == NSNotFound
                    && [requestedURLAbsoluteString rangeOfString:kMobileReaderURL].location == NSNotFound ) {
             //When in FP and the user click on an item we should push a new VC into the stack
-            WPWebViewController *webViewController;
-            if (IS_IPAD)
-                webViewController = [[WPWebViewController alloc] initWithNibName:@"WPWebViewController-iPad" bundle:nil]; 
-            else 
-                webViewController = [[WPWebViewController alloc] initWithNibName:@"WPWebViewController" bundle:nil];
-            webViewController.url = [request URL]; 
+            WPWebViewController *webViewController = [[WPWebViewController alloc] init];
+            webViewController.url = [request URL];
             [self.panelNavigationController popToRootViewControllerAnimated:NO];
             [self.panelNavigationController pushViewController:detailViewController animated:YES];
             return NO;

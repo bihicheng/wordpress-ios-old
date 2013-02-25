@@ -454,11 +454,16 @@ NSLog(@"%@", self.sectionInfoArray);
 
 - (void)restorePreservedSelection {
     NSDictionary *dict = [[NSUserDefaults standardUserDefaults] dictionaryForKey:@"kSelectedSidebarIndexDictionary"];
+    if (!dict) {
+        return [self selectFirstAvailableItem];
+    }
+
     NSIndexPath *preservedIndexPath = [NSIndexPath indexPathForRow:[[dict objectForKey:@"row"] integerValue] inSection:[[dict objectForKey:@"section"] integerValue]];
 
     if (preservedIndexPath.section >= [self numberOfSectionsInTableView:self.tableView] || preservedIndexPath.row >= [self tableView:self.tableView numberOfRowsInSection:preservedIndexPath.section]) {
         // preserved index path is not valid anymore
         [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"kSelectedSidebarIndexDictionary"];
+        [self selectFirstAvailableItem];
         return;
     }
     
@@ -997,19 +1002,12 @@ NSLog(@"%@", self.sectionInfoArray);
                         [self.panelNavigationController closeSidebar];
                     }
                 } else {
-                    WPWebViewController *webViewController;
-                    if ( IS_IPAD ) {
-                        webViewController = [[WPWebViewController alloc] initWithNibName:@"WPWebViewController-iPad" bundle:nil];
-                    }
-                    else {
-                        webViewController = [[WPWebViewController alloc] initWithNibName:@"WPWebViewController" bundle:nil];
-                    }
-                    
+                    WPWebViewController *webViewController = [[WPWebViewController alloc] init];
                     [webViewController setUrl:[NSURL URLWithString:blogURL]];
                     if( [blog isPrivate] ) {
                         [webViewController setUsername:blog.username];
                         [webViewController setPassword:[blog fetchPassword]];
-                        [webViewController setWpLoginURL:[NSURL URLWithString:blog.loginURL]];
+                        [webViewController setWpLoginURL:[NSURL URLWithString:blog.loginUrl]];
                     }
                     [self.panelNavigationController setDetailViewController:webViewController closingSidebar:closingSidebar];
                 }
@@ -1031,18 +1029,11 @@ NSLog(@"%@", self.sectionInfoArray);
                         [self.panelNavigationController closeSidebar];
                     }
                 } else {
-                    
-                    WPWebViewController *webViewController;
-                    if ( IS_IPAD ) {
-                        webViewController = [[WPWebViewController alloc] initWithNibName:@"WPWebViewController-iPad" bundle:nil];
-                    }
-                    else {
-                        webViewController = [[WPWebViewController alloc] initWithNibName:@"WPWebViewController" bundle:nil];
-                    }
+                    WPWebViewController *webViewController = [[WPWebViewController alloc] init];
                     [webViewController setUrl:[NSURL URLWithString:dashboardURL]];
                     [webViewController setUsername:blog.username];
                     [webViewController setPassword:[blog fetchPassword]];
-                    [webViewController setWpLoginURL:[NSURL URLWithString:blog.loginURL]];
+                    [webViewController setWpLoginURL:[NSURL URLWithString:blog.loginUrl]];
                     [self.panelNavigationController setDetailViewController:webViewController closingSidebar:closingSidebar];
                 }
                 if (IS_IPAD) {

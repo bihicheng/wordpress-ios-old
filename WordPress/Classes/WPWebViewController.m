@@ -11,6 +11,7 @@
 #import "PanelNavigationConstants.h"
 #import "ReachabilityUtils.h"
 #import "WPActivities.h"
+#import "NSString+Helpers.h"
 
 @class WPReaderDetailViewController;
 
@@ -324,7 +325,7 @@
     }
     else
         webURL = self.url;
-    
+
     WordPressAppDelegate *appDelegate = (WordPressAppDelegate *)[[UIApplication sharedApplication] delegate]; 
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:webURL];
     request.cachePolicy = NSURLRequestReturnCacheDataElseLoad;
@@ -333,9 +334,9 @@
     [request setCachePolicy:NSURLRequestReturnCacheDataElseLoad];
     if (needsLogin) {
         NSString *request_body = [NSString stringWithFormat:@"log=%@&pwd=%@&redirect_to=%@",
-                                  [self.username stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding],
-                                  [self.password stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding],
-                                  [[self.url absoluteString] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+                                  [self.username stringByUrlEncoding],
+                                  [self.password stringByUrlEncoding],
+                                  [[self.url absoluteString] stringByUrlEncoding]];
         
         if ( self.wpLoginURL != nil )
             [request setURL: self.wpLoginURL];
@@ -561,13 +562,7 @@
         navigationType == UIWebViewNavigationTypeLinkClicked
         ) { 
         
-        WPWebViewController *webViewController;
-        if (IS_IPAD) {
-            webViewController = [[WPWebViewController alloc] initWithNibName:@"WPWebViewController-iPad" bundle:nil];
-        }
-        else {
-            webViewController = [[WPWebViewController alloc] initWithNibName:@"WPWebViewController" bundle:nil];
-        }
+        WPWebViewController *webViewController = [[WPWebViewController alloc] init];
         [webViewController setUrl:[request URL]];
         if ( self.panelNavigationController  )
             [self.panelNavigationController pushViewController:webViewController fromViewController:self animated:YES];

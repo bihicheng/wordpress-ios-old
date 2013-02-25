@@ -13,6 +13,7 @@
 
 	// 3rd Party
     #import <AFNetworking/AFNetworking.h>
+    #import <NSObject+SafeExpectations.h>
     #import "NSObject+BlockObservation.h"
 
 	// Project-specific
