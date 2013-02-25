@@ -549,7 +549,6 @@
 		E128566515103A3600406BC9 /* keyboardButtoniPadHighlighted@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E128566315103A3600406BC9 /* keyboardButtoniPadHighlighted@2x.png */; };
 		E12A08E316C9706200E3DDF6 /* clouds_header.png in Resources */ = {isa = PBXBuildFile; fileRef = E12A08E116C9706200E3DDF6 /* clouds_header.png */; };
 		E12A08E416C9706200E3DDF6 /* clouds_header@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E12A08E216C9706200E3DDF6 /* clouds_header@2x.png */; };
-		E12AAB641513C4CA009D025B /* WPComOAuthController.xib in Resources */ = {isa = PBXBuildFile; fileRef = E12AAB631513C4CA009D025B /* WPComOAuthController.xib */; };
 		E12F95B9155820A40067A653 /* NSObject+BlockObservation.m in Sources */ = {isa = PBXBuildFile; fileRef = E12F95B8155820A40067A653 /* NSObject+BlockObservation.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		E131CB5216CACA6B004B0314 /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E131CB5116CACA6B004B0314 /* CoreText.framework */; };
 		E131CB5416CACB05004B0314 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E131CB5316CACB05004B0314 /* libxml2.dylib */; };
@@ -1375,7 +1374,6 @@
 		E128566315103A3600406BC9 /* keyboardButtoniPadHighlighted@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "keyboardButtoniPadHighlighted@2x.png"; path = "Resources/Images/keyboardButtoniPadHighlighted@2x.png"; sourceTree = "<group>"; };
 		E12A08E116C9706200E3DDF6 /* clouds_header.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = clouds_header.png; path = Resources/Images/clouds_header.png; sourceTree = "<group>"; };
 		E12A08E216C9706200E3DDF6 /* clouds_header@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "clouds_header@2x.png"; path = "Resources/Images/clouds_header@2x.png"; sourceTree = "<group>"; };
-		E12AAB631513C4CA009D025B /* WPComOAuthController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = WPComOAuthController.xib; path = Resources/WPComOAuthController.xib; sourceTree = "<group>"; };
 		E12F95A51557C9C20067A653 /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		E12F95A61557CA210067A653 /* hu */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hu; path = hu.lproj/Localizable.strings; sourceTree = "<group>"; };
 		E12F95A71557CA400067A653 /* pl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pl; path = pl.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -2968,7 +2966,6 @@
 				8320B5D711FCA4EE00607422 /* Cells */,
 				37245ADB13FC23FF006CDBE3 /* WPWebViewController.xib */,
 				FD0882EC1445F38C00F51302 /* WPReaderViewController.xib */,
-				E12AAB631513C4CA009D025B /* WPComOAuthController.xib */,
 				28AD735F0D9D9599002E5188 /* MainWindow.xib */,
 				30AF6CF413C2289600A29C00 /* AboutViewController.xib */,
 				3744A0DD130ABB0800CE7BE1 /* HelpViewController.xib */,
@@ -3316,7 +3313,6 @@
 				30811743151057880028A15E /* Default-Portrait@2x.png in Resources */,
 				30811744151057880028A15E /* Default-Landscape@2x.png in Resources */,
 				30811747151057940028A15E /* Icon-72@2x.png in Resources */,
-				E12AAB641513C4CA009D025B /* WPComOAuthController.xib in Resources */,
 				373C5184156D0523007C2977 /* SidebarViewController.xib in Resources */,
 				5DB767411588F64D00EBE36C /* postPreview.html in Resources */,
 				CCDCBC201590BF2A0040B3B1 /* FBDialog.bundle in Resources */,
