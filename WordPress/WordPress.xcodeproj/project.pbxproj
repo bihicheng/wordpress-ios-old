@@ -555,8 +555,6 @@
 		E131CB5416CACB05004B0314 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E131CB5316CACB05004B0314 /* libxml2.dylib */; };
 		E131CB5616CACF1E004B0314 /* get-user-blogs_has-blog.json in Resources */ = {isa = PBXBuildFile; fileRef = E131CB5516CACF1E004B0314 /* get-user-blogs_has-blog.json */; };
 		E131CB5816CACFB4004B0314 /* get-user-blogs_doesnt-have-blog.json in Resources */ = {isa = PBXBuildFile; fileRef = E131CB5716CACFB4004B0314 /* get-user-blogs_doesnt-have-blog.json */; };
-		E131CB5916CACFDF004B0314 /* entitiesDecoded.xml in Resources */ = {isa = PBXBuildFile; fileRef = E16AB94114D97A7D0047A2E5 /* entitiesDecoded.xml */; };
-		E131CB5A16CACFE3004B0314 /* entities.xml in Resources */ = {isa = PBXBuildFile; fileRef = E16AB94014D97A7D0047A2E5 /* entities.xml */; };
 		E131CB5E16CAD659004B0314 /* AsyncTestHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = E131CB5D16CAD659004B0314 /* AsyncTestHelper.m */; };
 		E131D08912C8C9160056BAB9 /* AbstractPost.m in Sources */ = {isa = PBXBuildFile; fileRef = E131D08812C8C9160056BAB9 /* AbstractPost.m */; };
 		E13EB7A5157D230000885780 /* WordPressComApi.m in Sources */ = {isa = PBXBuildFile; fileRef = E13EB7A4157D230000885780 /* WordPressComApi.m */; };
@@ -594,7 +592,6 @@
 		E16AB92C14D978240047A2E5 /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E16AB92B14D978240047A2E5 /* SenTestingKit.framework */; };
 		E16AB92E14D978240047A2E5 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		E16AB93414D978240047A2E5 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = E16AB93214D978240047A2E5 /* InfoPlist.strings */; };
-		E16AB93714D978240047A2E5 /* WordPressTest.m in Sources */ = {isa = PBXBuildFile; fileRef = E16AB93614D978240047A2E5 /* WordPressTest.m */; };
 		E17078FD130A95B600F30433 /* WordPress-1-2.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = E17078FC130A95B600F30433 /* WordPress-1-2.xcmappingmodel */; };
 		E1745A9A15AF49C000A3F7C5 /* UIViewController+Styled.m in Sources */ = {isa = PBXBuildFile; fileRef = E1745A9915AF49C000A3F7C5 /* UIViewController+Styled.m */; };
 		E1745AA715AF4E5900A3F7C5 /* UIBarButtonItem+Styled.m in Sources */ = {isa = PBXBuildFile; fileRef = E1745AA615AF4E5900A3F7C5 /* UIBarButtonItem+Styled.m */; };
@@ -1453,11 +1450,7 @@
 		E16AB92B14D978240047A2E5 /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
 		E16AB93114D978240047A2E5 /* WordPressTest-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "WordPressTest-Info.plist"; sourceTree = "<group>"; };
 		E16AB93314D978240047A2E5 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		E16AB93514D978240047A2E5 /* WordPressTest.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WordPressTest.h; sourceTree = "<group>"; };
-		E16AB93614D978240047A2E5 /* WordPressTest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WordPressTest.m; sourceTree = "<group>"; };
 		E16AB93814D978240047A2E5 /* WordPressTest-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "WordPressTest-Prefix.pch"; sourceTree = "<group>"; };
-		E16AB94014D97A7D0047A2E5 /* entities.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = entities.xml; sourceTree = "<group>"; };
-		E16AB94114D97A7D0047A2E5 /* entitiesDecoded.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = entitiesDecoded.xml; sourceTree = "<group>"; };
 		E17078FC130A95B600F30433 /* WordPress-1-2.xcmappingmodel */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = wrapper.xcmappingmodel; path = "WordPress-1-2.xcmappingmodel"; sourceTree = "<group>"; };
 		E1745A9815AF49C000A3F7C5 /* UIViewController+Styled.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIViewController+Styled.h"; sourceTree = "<group>"; };
 		E1745A9915AF49C000A3F7C5 /* UIViewController+Styled.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIViewController+Styled.m"; sourceTree = "<group>"; };
@@ -2925,8 +2918,6 @@
 				E131CB5B16CAD638004B0314 /* Test Helpers */,
 				E16AB94414D9A13A0047A2E5 /* Test Data */,
 				E16AB93014D978240047A2E5 /* Supporting Files */,
-				E16AB93514D978240047A2E5 /* WordPressTest.h */,
-				E16AB93614D978240047A2E5 /* WordPressTest.m */,
 				E183EC9E16B2164900C2EB11 /* EditPostViewControllerTest.h */,
 				E183EC9F16B2164900C2EB11 /* EditPostViewControllerTest.m */,
 				E150520A16CAC5C400D3DDDC /* BlogJetpackTest.h */,
@@ -2948,8 +2939,6 @@
 		E16AB94414D9A13A0047A2E5 /* Test Data */ = {
 			isa = PBXGroup;
 			children = (
-				E16AB94014D97A7D0047A2E5 /* entities.xml */,
-				E16AB94114D97A7D0047A2E5 /* entitiesDecoded.xml */,
 				E131CB5516CACF1E004B0314 /* get-user-blogs_has-blog.json */,
 				E131CB5716CACFB4004B0314 /* get-user-blogs_doesnt-have-blog.json */,
 				E15618FE16DBA983006532C4 /* xmlrpc-response-newpost.xml */,
@@ -3642,8 +3631,6 @@
 				E16AB93414D978240047A2E5 /* InfoPlist.strings in Resources */,
 				E131CB5616CACF1E004B0314 /* get-user-blogs_has-blog.json in Resources */,
 				E131CB5816CACFB4004B0314 /* get-user-blogs_doesnt-have-blog.json in Resources */,
-				E131CB5916CACFDF004B0314 /* entitiesDecoded.xml in Resources */,
-				E131CB5A16CACFE3004B0314 /* entities.xml in Resources */,
 				E15618FF16DBA983006532C4 /* xmlrpc-response-newpost.xml in Resources */,
 				E156190116DBABDE006532C4 /* xmlrpc-response-getpost.xml in Resources */,
 			);
@@ -3856,7 +3843,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E16AB93714D978240047A2E5 /* WordPressTest.m in Sources */,
 				371C367B156CCFDD007EA03E /* SectionInfo.m in Sources */,
 				371C367C156CCFDD007EA03E /* SidebarSectionHeaderView.m in Sources */,
 				5DC433321587C3600073CF07 /* PanelViewWrapper.m in Sources */,
