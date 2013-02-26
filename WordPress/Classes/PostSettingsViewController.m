@@ -42,6 +42,7 @@
 		[reverseGeocoder cancelGeocode];
 	}
 	mapView.delegate = nil;
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (id)initWithPost:(AbstractPost *)aPost {
@@ -228,7 +229,7 @@
                 triedAuthOnce = YES;
                 
                 NSError *error = nil;
-                Blog *blog = self.self.apost.blog;
+                Blog *blog = self.apost.blog;
                 NSString *username = blog.username;
                 NSString *password = [SFHFKeychainUtils getPasswordForUsername:blog.username andServiceName:blog.hostURL error:&error];
                 
@@ -761,7 +762,7 @@
         [featuredImageSpinner setHidden:YES];
         [featuredImageLabel setHidden:YES];
         [featuredImageView setHidden:NO];
-        self.self.post.post_thumbnail = media.mediaID;
+        self.post.post_thumbnail = media.mediaID;
         [featuredImageView setImage:[UIImage imageWithContentsOfFile:media.localURL]];
     } else {
         //reset buttons
